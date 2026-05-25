@@ -818,20 +818,20 @@ function App() {
     /* ── INTRO ── */
     if (appState === 'intro') {
         return (
-            <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 text-center relative z-10">
-                <div className="flex flex-col items-center justify-center space-y-8 my-auto max-w-lg w-full">
+            <div className="h-screen w-full flex flex-col items-center justify-center text-center relative z-10 overflow-hidden" style={{padding:'0 16px'}}>
+                <div className="flex flex-col items-center justify-between w-full max-w-lg" style={{height:'100%', paddingTop:'max(20px,4vh)', paddingBottom:'max(12px,2.5vh)'}}>
 
-                    <div style={{transform:'scale(1.1)'}}>
-                        <RealisticMoon phase="full" size={120} glow={true}/>
+                    <div style={{transform:'scale(0.95)', flexShrink:0}}>
+                        <RealisticMoon phase="full" size={100} glow={true}/>
                     </div>
 
-                    <div>
-                        <h1 className="text-5xl md:text-7xl font-semibold tracking-[0.15em] serif title-gold uppercase leading-none">
+                    <div style={{flexShrink:0}}>
+                        <h1 className="text-4xl md:text-6xl font-semibold tracking-[0.15em] serif title-gold uppercase leading-none">
                             MOON<br/>RITUALS
                         </h1>
                     </div>
 
-                    <div className="sinhala-text text-[17px] md:text-[20px] text-white/80 text-center px-4" style={{lineHeight:1.52}}>
+                    <div className="sinhala-text text-white/80 text-center" style={{lineHeight:1.45, fontSize:'clamp(13px,3.8vw,17px)', flexShrink:1}}>
                         {[
                             "සිත් සනහන සඳ මඬල,",
                             "පිවිතුරුවූත්, බලවත්වූත් ශක්තියක්",
@@ -843,29 +843,34 @@ function App() {
                             "පූජනීය චාරිත්‍ර වාරිත්‍ර",
                             "සිදු කළ හැකි වේ.",
                             "",
-                            "",
                             "තෙරැවන් සරණයි",
                         ].map((line, i) => (
-                            <span key={i} className="devot-line block" style={{animationDelay:`${0.5 + i*0.08}s`}}>
-                                {line || ' '}
+                            <span key={i} className="devot-line block" style={{animationDelay:`${0.5 + i*0.08}s`, marginBottom: line === '' ? '0.45em' : '0'}}>
+                                {line || ' '}
                             </span>
                         ))}
                     </div>
 
                     <button
                         onClick={(e) => { addRipple(e); setTimeout(() => setAppState('main'), 200); }}
-                        className="ripple-btn mt-4 px-14 py-4 rounded-full sinhala-text text-2xl font-bold transition-all active:scale-95"
+                        className="ripple-btn sinhala-text font-bold transition-all active:scale-95"
                         style={{
-                            background: 'linear-gradient(135deg, #083A4F 0%, #0d4f6e 100%)',
-                            border: '1px solid rgba(212,175,55,0.4)',
+                            flexShrink: 0,
+                            padding: '9px 36px',
+                            borderRadius: '999px',
+                            fontSize: '16px',
+                            background: 'rgba(8,50,70,0.7)',
+                            backdropFilter: 'blur(12px)',
+                            border: '1px solid rgba(212,175,55,0.55)',
                             color: T.gold,
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(212,175,55,0.1)',
+                            boxShadow: '0 4px 18px rgba(0,0,0,0.45), 0 0 12px rgba(212,175,55,0.12)',
+                            letterSpacing: '0.06em',
                         }}
                     >
                         පිවිසෙන්න
                     </button>
 
-                    <footer className="opacity-25 text-[10px] tracking-widest uppercase text-white serif pt-2">
+                    <footer className="opacity-25 text-[10px] tracking-widest uppercase text-white serif" style={{flexShrink:0}}>
                         © Three Vidya Insight Center
                     </footer>
                 </div>
