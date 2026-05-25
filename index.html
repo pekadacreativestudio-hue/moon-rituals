@@ -293,44 +293,119 @@
 </div>
 
 <script>
-/* ── Starfield canvas ── */
+/* ── Starfield + Milky Way + Shooting Stars ── */
 (function(){
     const c = document.getElementById('star-canvas');
     const resize = () => { c.width = window.innerWidth; c.height = window.innerHeight; };
     resize(); window.addEventListener('resize', resize);
     const ctx = c.getContext('2d');
-    const N = 75;
-    const stars = Array.from({length:N}, () => ({
+
+    /* Regular drifting stars */
+    const stars = Array.from({length:55}, () => ({
         x: Math.random(), y: Math.random(),
-        r: Math.random() * 1.4 + 0.2,
-        a: Math.random(),
-        da: (Math.random() - 0.5) * 0.006,
-        speed: Math.random() * 0.00004 + 0.00001,
-        hue: Math.random() < 0.15 ? 45 : 0
+        r: Math.random() * 1.1 + 0.2,
+        a: Math.random() * 0.7 + 0.2,
+        da: (Math.random() - 0.5) * 0.003,
+        vx: (Math.random() - 0.5) * 0.00006,
+        vy: (Math.random() - 0.5) * 0.00006,
+        gold: Math.random() < 0.12
     }));
-    function draw(t){
-        ctx.clearRect(0,0,c.width,c.height);
-        stars.forEach(s => {
-            s.a = Math.max(0.05, Math.min(1, s.a + s.da));
-            if(s.a <= 0.05 || s.a >= 1) s.da *= -1;
-            s.y -= s.speed;
-            if(s.y < 0) { s.y = 1; s.x = Math.random(); }
-            ctx.save();
+
+    /* Milky Way micro-stars – diagonal band */
+    const milky = Array.from({length:260}, () => {
+        const t = Math.random();
+        const spread = 0.18;
+        return {
+            x: 0.25 + t * 0.55 + (Math.random()-0.5)*spread,
+            y: 0.05 + t * 0.65 + (Math.random()-0.5)*spread*0.7,
+            r: Math.random() * 0.55 + 0.1,
+            a: Math.random() * 0.28 + 0.04,
+        };
+    });
+
+    /* Shooting stars */
+    const shooters = [];
+    let nextShot = 2500 + Math.random() * 3000;
+    let last = 0;
+
+    function spawnShooter(){
+        const sx = 0.1 + Math.random() * 0.6;
+        const sy = Math.random() * 0.35;
+        const angle = Math.PI/4 + (Math.random()-0.5)*0.4;
+        shooters.push({ x:sx, y:sy, angle, speed:0.0013+Math.random()*0.001,
+            len:0.06+Math.random()*0.05, a:1 });
+    }
+
+    function drawMilkyWay(){
+        /* Soft glow band */
+        const bx0=0.25*c.width, by0=0.05*c.height, bx1=0.80*c.width, by1=0.70*c.height;
+        const g = ctx.createLinearGradient(bx0,by0,bx1,by1);
+        g.addColorStop(0,  'rgba(90,110,200,0)');
+        g.addColorStop(0.25,'rgba(100,120,210,0.045)');
+        g.addColorStop(0.5, 'rgba(120,140,230,0.07)');
+        g.addColorStop(0.75,'rgba(100,120,210,0.045)');
+        g.addColorStop(1,  'rgba(90,110,200,0)');
+        ctx.save();
+        ctx.fillStyle = g;
+        ctx.fillRect(0,0,c.width,c.height);
+        /* Micro stars */
+        milky.forEach(s=>{
             ctx.globalAlpha = s.a;
-            const grd = ctx.createRadialGradient(
-                s.x*c.width, s.y*c.height, 0,
-                s.x*c.width, s.y*c.height, s.r*2.5
-            );
-            const col = s.hue===45 ? `rgba(255,238,140,1)` : `rgba(255,255,255,1)`;
-            const colT = s.hue===45 ? `rgba(255,238,140,0)` : `rgba(200,220,255,0)`;
-            grd.addColorStop(0, col);
-            grd.addColorStop(1, colT);
             ctx.beginPath();
-            ctx.arc(s.x*c.width, s.y*c.height, s.r*2.5, 0, Math.PI*2);
-            ctx.fillStyle = grd;
+            ctx.arc(s.x*c.width, s.y*c.height, s.r, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(190,210,255,1)';
             ctx.fill();
-            ctx.restore();
         });
+        ctx.restore();
+    }
+
+    function draw(ts){
+        const dt = ts - last; last = ts;
+        ctx.clearRect(0,0,c.width,c.height);
+
+        drawMilkyWay();
+
+        /* Drifting stars */
+        stars.forEach(s => {
+            s.a += s.da;
+            if(s.a <= 0.15 || s.a >= 0.95){ s.da *= -1; }
+            s.x += s.vx; s.y += s.vy;
+            if(s.x<0) s.x=1; if(s.x>1) s.x=0;
+            if(s.y<0) s.y=1; if(s.y>1) s.y=0;
+            const px=s.x*c.width, py=s.y*c.height, rd=s.r*3;
+            const grd = ctx.createRadialGradient(px,py,0,px,py,rd);
+            grd.addColorStop(0, s.gold?'rgba(255,238,140,1)':'rgba(255,255,255,1)');
+            grd.addColorStop(1, s.gold?'rgba(255,238,140,0)':'rgba(200,220,255,0)');
+            ctx.save(); ctx.globalAlpha=s.a;
+            ctx.beginPath(); ctx.arc(px,py,rd,0,Math.PI*2);
+            ctx.fillStyle=grd; ctx.fill(); ctx.restore();
+        });
+
+        /* Shooting stars */
+        nextShot -= dt;
+        if(nextShot <= 0){ spawnShooter(); nextShot = 3500+Math.random()*4500; }
+        for(let i=shooters.length-1;i>=0;i--){
+            const s=shooters[i];
+            s.x += Math.cos(s.angle)*s.speed;
+            s.y += Math.sin(s.angle)*s.speed;
+            s.a -= 0.015;
+            if(s.a<=0||s.x>1.1||s.y>1.1){ shooters.splice(i,1); continue; }
+            const tx=s.x-Math.cos(s.angle)*s.len, ty=s.y-Math.sin(s.angle)*s.len;
+            const sg=ctx.createLinearGradient(tx*c.width,ty*c.height,s.x*c.width,s.y*c.height);
+            sg.addColorStop(0,'rgba(255,255,255,0)');
+            sg.addColorStop(0.6,'rgba(255,248,200,0.4)');
+            sg.addColorStop(1,'rgba(255,255,255,0.95)');
+            ctx.save(); ctx.globalAlpha=s.a;
+            ctx.strokeStyle=sg; ctx.lineWidth=1.6;
+            ctx.beginPath(); ctx.moveTo(tx*c.width,ty*c.height); ctx.lineTo(s.x*c.width,s.y*c.height);
+            ctx.stroke();
+            /* Head glow */
+            const hg=ctx.createRadialGradient(s.x*c.width,s.y*c.height,0,s.x*c.width,s.y*c.height,4);
+            hg.addColorStop(0,'rgba(255,255,240,0.9)'); hg.addColorStop(1,'rgba(255,255,240,0)');
+            ctx.beginPath(); ctx.arc(s.x*c.width,s.y*c.height,4,0,Math.PI*2);
+            ctx.fillStyle=hg; ctx.fill();
+            ctx.restore();
+        }
         requestAnimationFrame(draw);
     }
     requestAnimationFrame(draw);
@@ -458,42 +533,41 @@ const SandglassIcon = () => (
 function PoyaCategoryCard({ title, moonPhase, occurrences, isExpanded, onToggle }) {
     return (
         <div className="w-full flex justify-center px-4 z-10 relative my-3">
-            <div className="w-full max-w-lg spin-border cursor-pointer" style={{padding:'2.5px'}} onClick={onToggle}>
-                <div className="ivory-card overflow-hidden">
-                    <div className="p-6 md:p-7 flex items-center space-x-5 ripple-btn" onClick={addRipple}>
-                        <div className="flex-shrink-0">
-                            <MoonIcon phase={moonPhase} size={52}/>
-                        </div>
-                        <div className="flex-grow min-w-0">
-                            <h2 className="text-2xl md:text-3xl sinhala-text font-extrabold leading-tight">
-                                <span className="poya-gold">{title}</span>
-                            </h2>
-                            <p className="sinhala-text text-sm text-[#083A4F]/60 mt-0.5">
-                                වසරේ සියලු පෝය දින බැලීමට ක්ලික් කරන්න
-                            </p>
-                        </div>
-                        <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#B8860B" strokeWidth="2.5" className="w-5 h-5 transition-transform duration-500" style={{transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'}}>
-                                <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                        </div>
+            <div className="w-full max-w-lg glass-card overflow-hidden cursor-pointer ripple-btn"
+                 onClick={(e) => { addRipple(e); onToggle(); }}>
+                {/* Header row */}
+                <div className="p-6 md:p-7 flex items-center space-x-5">
+                    <div className="flex-shrink-0">
+                        <MoonIcon phase={moonPhase} size={56}/>
                     </div>
+                    <div className="flex-grow min-w-0">
+                        <h2 className="text-2xl md:text-3xl sinhala-text font-extrabold leading-tight poya-gold">{title}</h2>
+                        <p className="sinhala-text text-sm text-white/45 mt-0.5">වසරේ සියලු පෝය දින බැලීමට ක්ලික් කරන්න</p>
+                    </div>
+                    <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center"
+                         style={{background:'rgba(212,175,55,0.1)', border:'1px solid rgba(212,175,55,0.2)'}}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2.5" className="w-4 h-4 transition-transform duration-500" style={{transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'}}>
+                            <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
 
-                    <div className={`accordion-body ${isExpanded ? 'open' : ''}`}>
-                        <div className="px-5 pb-7 space-y-2">
-                            <div className="h-px bg-black/10 mx-3 mb-4"/>
-                            {occurrences.map((item, idx) => (
-                                <div key={idx} className="poya-row flex flex-col py-3 px-5 bg-white/40 border border-black/5">
-                                    <span className="sinhala-text text-[19px] md:text-[21px] font-bold leading-tight" style={{color: T.copper}}>
-                                        {item.year} {item.monthName} මස {title}
-                                    </span>
-                                    <span className="sinhala-text text-base md:text-lg font-bold text-[#083A4F] mt-0.5">{item.sinhalaDate}</span>
-                                    <div className="flex items-center space-x-1.5 text-[#083A4F]/80 font-semibold mt-1">
-                                        <SandglassIcon/><span className="sinhala-text text-base">{item.time}</span>
-                                    </div>
+                {/* Accordion body */}
+                <div className={`accordion-body ${isExpanded ? 'open' : ''}`}>
+                    <div className="px-5 pb-6 space-y-2">
+                        <div className="h-px mx-3 mb-4" style={{background:'rgba(212,175,55,0.15)'}}/>
+                        {occurrences.map((item, idx) => (
+                            <div key={idx} className="flex flex-col py-3 px-5 rounded-xl transition-all"
+                                 style={{background:'rgba(255,255,255,0.04)', border:'1px solid rgba(212,175,55,0.08)'}}>
+                                <span className="sinhala-text text-[18px] md:text-[20px] font-bold leading-tight poya-gold">
+                                    {item.year} {item.monthName} මස
+                                </span>
+                                <span className="sinhala-text text-base md:text-lg font-bold mt-0.5" style={{color:'rgba(229,225,221,0.85)'}}>{item.sinhalaDate}</span>
+                                <div className="flex items-center space-x-1.5 mt-1" style={{color:'rgba(255,238,140,0.7)'}}>
+                                    <SandglassIcon/><span className="sinhala-text text-base font-semibold">{item.time}</span>
                                 </div>
-                            ))}
-                        </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
@@ -526,11 +600,14 @@ function PhaseCard({ p, idx, selectedMonth, cleanNikini, sinhalaMonths, onDescCl
                         </div>
                     </div>
                     {p.description && (
-                        <button onClick={onDescClick}
-                            className="ripple-btn mt-3 w-full py-2.5 rounded-xl sinhala-text text-base font-bold transition-all active:scale-95"
-                            style={{background:'linear-gradient(135deg,rgba(212,175,55,0.18),rgba(212,175,55,0.10))', border:'1.5px solid rgba(212,175,55,0.55)', color:'#FFEE8C', boxShadow:'0 2px 12px rgba(212,175,55,0.15)'}}>
+                        <span onClick={onDescClick} style={{
+                            display:'inline-block', marginTop:'10px', cursor:'pointer',
+                            fontFamily:"'Abhaya Libre',serif", fontSize:'17px', fontWeight:'700',
+                            color:'#FFEE8C', textDecoration:'underline',
+                            textDecorationColor:'rgba(255,238,140,0.4)', textUnderlineOffset:'3px',
+                        }}>
                             පෝය විස්තරය
-                        </button>
+                        </span>
                     )}
                 </div>
             </div>
@@ -540,12 +617,13 @@ function PhaseCard({ p, idx, selectedMonth, cleanNikini, sinhalaMonths, onDescCl
 
 /* ══════════════════ APP ══════════════════ */
 function App() {
-    const [appState, setAppState]       = useState('intro');
-    const [viewMode, setViewMode]       = useState('month');
+    const [appState, setAppState]           = useState('intro');
+    const [viewMode, setViewMode]           = useState('month');
     const [selectedMonth, setSelectedMonth] = useState(0);
-    const [poyaModal, setPoyaModal]     = useState({ isOpen: false, data: null });
+    const [isMonthOpen, setIsMonthOpen]     = useState(false);
+    const [poyaModal, setPoyaModal]         = useState({ isOpen: false, data: null });
     const [expandedPoyaType, setExpandedPoyaType] = useState(null);
-    const [monthKey, setMonthKey]       = useState(0);
+    const [monthKey, setMonthKey]           = useState(0);
 
     const cleanNikini = "නිකිණි";
 
@@ -830,7 +908,7 @@ function App() {
             {/* Month view */}
             {viewMode === 'month' ? (
                 <div className="w-full max-w-5xl px-4 flex flex-col items-center">
-                    {/* Month navigator — arrows only */}
+                    {/* Month navigator */}
                     <div className="flex items-center space-x-5 mb-8 w-full max-w-lg justify-center">
                         <button disabled={selectedMonth === 0}
                             className="w-12 h-12 rounded-full glass-card flex items-center justify-center text-white disabled:opacity-20 transition-all active:scale-90 ripple-btn"
@@ -838,10 +916,13 @@ function App() {
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" strokeWidth={2.5} strokeLinecap="round"/></svg>
                         </button>
 
-                        <div className="text-center flex-1">
-                            <h2 className="sinhala-text text-3xl md:text-4xl font-bold text-white">
-                                {m.id === 3 ? cleanNikini : m.name} මාසය
-                            </h2>
+                        <div className="text-center flex-1 cursor-pointer group" onClick={() => setIsMonthOpen(true)}>
+                            <div className="flex items-center justify-center space-x-1.5">
+                                <h2 className="sinhala-text text-3xl md:text-4xl font-bold text-white group-hover:text-[#FFEE8C] transition-colors">
+                                    {m.id === 3 ? cleanNikini : m.name} මාසය
+                                </h2>
+                                <svg className="w-4 h-4 text-white/30 group-hover:text-[#FFEE8C] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" strokeWidth={2} strokeLinecap="round"/></svg>
+                            </div>
                             <p className="text-xs tracking-widest text-white/30 serif uppercase mt-0.5">{m.year} · {m.en}</p>
                         </div>
 
@@ -903,40 +984,72 @@ function App() {
             </footer>
         </main>
 
-        {/* ── Poya description modal — rendered outside <main> so stacking context doesn't clip it ── */}
+        {/* ── Poya description modal ── */}
         {poyaModal.isOpen && (
-            <div style={{position:'fixed',inset:0,zIndex:500,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',background:'rgba(2,14,22,0.93)',backdropFilter:'blur(14px)'}}
+            <div style={{position:'fixed',inset:0,zIndex:500,display:'flex',alignItems:'center',justifyContent:'center',padding:'20px',background:'rgba(2,10,18,0.95)',backdropFilter:'blur(16px)'}}
                  onClick={() => setPoyaModal({isOpen:false,data:null})}>
                 <div className="modal-pop w-full max-w-md rounded-[2rem] overflow-hidden shadow-2xl"
-                     style={{border:'1px solid rgba(212,175,55,0.25)', maxHeight:'85vh', display:'flex', flexDirection:'column'}}
+                     style={{border:'1px solid rgba(212,175,55,0.3)', maxHeight:'85vh', display:'flex', flexDirection:'column',
+                             background:'linear-gradient(160deg,#0D3348 0%,#071A26 60%,#030F18 100%)'}}
                      onClick={e => e.stopPropagation()}>
                     {/* Header */}
-                    <div className="p-6 pb-4 flex-shrink-0" style={{background:'linear-gradient(135deg,#FFFFF0,#FFF8DC)'}}>
-                        <div className="flex items-center justify-between">
-                            <h3 className="sinhala-text text-2xl font-bold leading-tight">
-                                <span className="poya-gold">{poyaModal.data?.monthName} මස</span>
-                            </h3>
+                    <div className="p-6 pb-4 flex-shrink-0" style={{borderBottom:'1px solid rgba(212,175,55,0.12)'}}>
+                        <div className="flex items-center justify-between mb-1">
+                            <div>
+                                <p className="sinhala-text text-sm text-white/40 uppercase tracking-widest mb-1">පොහොය විස්තරය</p>
+                                <h3 className="sinhala-text text-2xl font-bold leading-tight poya-gold">
+                                    {poyaModal.data?.monthName} මස
+                                </h3>
+                            </div>
                             <button onClick={() => setPoyaModal({isOpen:false,data:null})}
-                                className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center text-[#083A4F]/60 hover:bg-black/20 transition-all">
+                                className="w-9 h-9 rounded-full flex items-center justify-center transition-all"
+                                style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.5)'}}>
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={2}/></svg>
                             </button>
                         </div>
-                        <p className="sinhala-text text-lg font-bold text-[#083A4F]/70">පොහොය විස්තරය</p>
                     </div>
                     {/* Body */}
-                    <div className="p-6 overflow-y-auto modal-scroll flex-1"
-                         style={{background:'linear-gradient(to bottom,#FFFCF5,#FDFBF0)'}}>
-                        <p className="sinhala-text text-[18px] text-[#083A4F] leading-[1.7] text-justify whitespace-pre-line">
+                    <div className="p-6 overflow-y-auto modal-scroll flex-1">
+                        <p className="sinhala-text text-[18px] leading-[1.85] text-justify whitespace-pre-line"
+                           style={{color:'rgba(229,225,221,0.9)'}}>
                             {poyaModal.data?.description}
                         </p>
                     </div>
                     {/* Footer */}
-                    <div className="p-4 flex-shrink-0" style={{background:'#FDFBF0'}}>
-                        <button className="ripple-btn w-full py-3.5 rounded-2xl sinhala-text text-lg font-bold text-white transition-all active:scale-95"
-                            style={{background:'linear-gradient(135deg,#083A4F,#0d5570)',boxShadow:'0 4px 16px rgba(0,0,0,0.3)'}}
+                    <div className="p-4 flex-shrink-0" style={{borderTop:'1px solid rgba(255,255,255,0.05)'}}>
+                        <button className="ripple-btn w-full py-3.5 rounded-2xl sinhala-text text-lg font-bold transition-all active:scale-95"
+                            style={{background:'linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.08))',
+                                    border:'1px solid rgba(212,175,55,0.4)', color:'#FFEE8C',
+                                    boxShadow:'0 0 20px rgba(212,175,55,0.08)'}}
                             onClick={(e) => { addRipple(e); setPoyaModal({isOpen:false,data:null}); }}>
-                            පෙර මෙනුවට
+                            ← පෙර මෙනුවට
                         </button>
+                    </div>
+                </div>
+            </div>
+        )}
+        {/* ── Month picker modal ── */}
+        {isMonthOpen && (
+            <div style={{position:'fixed',inset:0,zIndex:500,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',background:'rgba(2,14,22,0.92)',backdropFilter:'blur(12px)'}}
+                 onClick={() => setIsMonthOpen(false)}>
+                <div className="modal-pop w-full max-w-xs rounded-3xl overflow-hidden shadow-2xl"
+                     style={{background:'linear-gradient(135deg,#0A2330,#061820)',border:'1px solid rgba(255,255,255,0.08)',maxHeight:'80vh',display:'flex',flexDirection:'column'}}
+                     onClick={e => e.stopPropagation()}>
+                    <div className="p-5 flex-shrink-0" style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                        <h3 className="sinhala-text text-xl font-bold text-white text-center">මාසය තෝරන්න</h3>
+                    </div>
+                    <div className="p-3 overflow-y-auto no-scrollbar flex-1">
+                        {sinhalaMonths.map(mo => (
+                            <button key={mo.id}
+                                className="ripple-btn w-full py-3.5 mb-1 rounded-xl sinhala-text text-lg transition-all"
+                                style={selectedMonth===mo.id
+                                    ? {background:'linear-gradient(135deg,#D4AF37,#FFEE8C)',color:'#021017',fontWeight:700,boxShadow:'0 4px 16px rgba(212,175,55,0.35)'}
+                                    : {background:'transparent',color:'rgba(255,255,255,0.7)'}}
+                                onClick={(e)=>{ addRipple(e); setSelectedMonth(mo.id); setMonthKey(k=>k+1); setIsMonthOpen(false); }}>
+                                {mo.id===3 ? cleanNikini : mo.name} මස
+                                <span className="ml-2 text-sm opacity-40 serif">{mo.year}</span>
+                            </button>
+                        ))}
                     </div>
                 </div>
             </div>
