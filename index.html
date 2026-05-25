@@ -323,6 +323,49 @@
         };
     });
 
+    /* Wispy cirrus clouds */
+    const clouds = Array.from({length: 6}, () => {
+        const numBlobs = 6 + Math.floor(Math.random() * 5);
+        return {
+            x: Math.random(),
+            y: 0.36 + Math.random() * 0.58,
+            w: 0.13 + Math.random() * 0.22,
+            h: 0.016 + Math.random() * 0.02,
+            speed: (0.000010 + Math.random() * 0.000016) * (Math.random() < 0.5 ? 1 : -1),
+            a: 0.038 + Math.random() * 0.055,
+            blobs: Array.from({length: numBlobs}, (_, j) => ({
+                dx: (j / (numBlobs - 1) - 0.5),
+                dy: (Math.random() - 0.5) * 0.28,
+                rs: 0.10 + Math.random() * 0.09,
+            })),
+        };
+    });
+
+    function drawClouds() {
+        clouds.forEach(cl => {
+            cl.x += cl.speed;
+            if (cl.x > 1.45) cl.x = -0.45;
+            if (cl.x < -0.45) cl.x = 1.45;
+            const cx = cl.x * c.width, cy = cl.y * c.height;
+            const cw = cl.w * c.width, ch = cl.h * c.height;
+            ctx.save();
+            ctx.globalAlpha = cl.a;
+            cl.blobs.forEach(b => {
+                const bx = cx + b.dx * cw, by = cy + b.dy * ch;
+                const br = b.rs * cw;
+                const g = ctx.createRadialGradient(bx, by, 0, bx, by, br);
+                g.addColorStop(0,   'rgba(210,228,255,0.80)');
+                g.addColorStop(0.45,'rgba(200,218,255,0.28)');
+                g.addColorStop(1,   'rgba(185,210,255,0)');
+                ctx.beginPath();
+                ctx.ellipse(bx, by, br, br * 0.36, 0, 0, Math.PI * 2);
+                ctx.fillStyle = g;
+                ctx.fill();
+            });
+            ctx.restore();
+        });
+    }
+
     /* Shooting stars */
     const shooters = [];
     let nextShot = 2500 + Math.random() * 3000;
@@ -380,6 +423,8 @@
             ctx.beginPath(); ctx.arc(px,py,rd,0,Math.PI*2);
             ctx.fillStyle=grd; ctx.fill(); ctx.restore();
         });
+
+        drawClouds();
 
         /* Shooting stars */
         nextShot -= dt;
@@ -818,20 +863,23 @@ function App() {
     /* ── INTRO ── */
     if (appState === 'intro') {
         return (
-            <div className="h-screen w-full flex flex-col items-center justify-center text-center relative z-10 overflow-hidden" style={{padding:'0 16px'}}>
-                <div className="flex flex-col items-center w-full max-w-lg" style={{paddingTop:'max(4px,1vh)', paddingBottom:'max(10px,2vh)'}}>
+            <div style={{height:'100vh',width:'100%',display:'flex',flexDirection:'column',alignItems:'center',textAlign:'center',position:'relative',zIndex:10,overflow:'hidden',padding:'0 16px',boxSizing:'border-box'}}>
 
-                    <div style={{transform:'scale(0.95)', flexShrink:0, marginBottom:'10px'}}>
-                        <RealisticMoon phase="full" size={100} glow={true}/>
-                    </div>
+                {/* Moon pinned near top */}
+                <div style={{paddingTop:'max(6px,1.2vh)', flexShrink:0}}>
+                    <RealisticMoon phase="full" size={96} glow={true}/>
+                </div>
 
-                    <div style={{flexShrink:0, marginBottom:'24px'}}>
-                        <h1 className="text-4xl md:text-6xl font-semibold tracking-[0.15em] serif title-gold uppercase leading-none">
+                {/* Title + text + button centered in remaining space */}
+                <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',width:'100%',maxWidth:'28rem',paddingBottom:'max(8px,1.5vh)'}}>
+
+                    <div style={{marginBottom:'24px'}}>
+                        <h1 className="text-4xl font-semibold tracking-[0.15em] serif title-gold uppercase leading-none">
                             MOON<br/>RITUALS
                         </h1>
                     </div>
 
-                    <div className="sinhala-text text-white/80 text-center" style={{lineHeight:1.48, fontSize:'clamp(14.5px,4.2vw,18.5px)', flexShrink:1, marginBottom:'20px'}}>
+                    <div className="sinhala-text text-white/80 text-center" style={{lineHeight:1.48, fontSize:'clamp(14px,4vw,18px)', marginBottom:'20px'}}>
                         {[
                             "සිත් සනහන සඳ මඬල,",
                             "පිවිතුරුවූත්, බලවත්වූත් ශක්තියක්",
@@ -868,10 +916,10 @@ function App() {
                             letterSpacing: '0.06em',
                         }}
                     >
-                        පිවිසෙන්න
+                        පිවිසෙන්න  
                     </button>
 
-                    <footer className="opacity-25 text-[10px] tracking-widest uppercase text-white serif" style={{flexShrink:0}}>
+                    <footer className="opacity-25 text-[10px] tracking-widest uppercase text-white serif">
                         © Three Vidya Insight Center
                     </footer>
                 </div>
