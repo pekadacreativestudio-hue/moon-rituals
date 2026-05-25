@@ -133,18 +133,18 @@
 
         /* ── Glass cards ── */
         .glass-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
-            border: 1px solid rgba(212,175,55,0.18);
+            background: linear-gradient(135deg, rgba(8,58,79,0.82) 0%, rgba(4,28,44,0.90) 100%);
+            border: 1px solid rgba(212,175,55,0.28);
             border-radius: 2rem;
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
             transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
         }
         .glass-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 30px rgba(212,175,55,0.08), inset 0 1px 0 rgba(255,255,255,0.1);
-            border-color: rgba(212,175,55,0.35);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.6), 0 0 30px rgba(212,175,55,0.12), inset 0 1px 0 rgba(255,255,255,0.12);
+            border-color: rgba(212,175,55,0.5);
         }
 
         /* Ivory cards (for accordions) */
@@ -299,7 +299,7 @@
     const resize = () => { c.width = window.innerWidth; c.height = window.innerHeight; };
     resize(); window.addEventListener('resize', resize);
     const ctx = c.getContext('2d');
-    const N = 220;
+    const N = 75;
     const stars = Array.from({length:N}, () => ({
         x: Math.random(), y: Math.random(),
         r: Math.random() * 1.4 + 0.2,
@@ -444,7 +444,7 @@ function RealisticMoon({ phase = 'full', size = 72, glow = true }) {
 }
 
 function MoonIcon({ phase = 'full', size = 48 }) {
-    return <RealisticMoon phase={phase} size={size} glow={false}/>;
+    return <RealisticMoon phase={phase} size={size} glow={phase !== 'new'}/>;
 }
 
 /* ── Sandglass icon ── */
@@ -518,19 +518,20 @@ function PhaseCard({ p, idx, selectedMonth, cleanNikini, sinhalaMonths, onDescCl
                 </div>
                 <div className="flex-grow min-w-0">
                     <h3 className="text-2xl md:text-3xl font-bold poya-gold sinhala-text leading-tight">{p.title}</h3>
-                    <p className="sinhala-text text-lg font-bold text-white/70 mt-1 leading-snug">{p.date}</p>
-                    <div className="flex flex-wrap items-center gap-3 mt-3">
+                    <p className="sinhala-text text-lg font-bold text-white/80 mt-1 leading-snug">{p.date}</p>
+                    <div className="flex items-center gap-3 mt-3">
                         <div className="time-badge text-white">
                             <SandglassIcon/>
                             <span className="sinhala-text text-base font-bold">{p.time}</span>
                         </div>
-                        {p.description && (
-                            <button onClick={onDescClick}
-                                className="sinhala-text text-sm font-bold px-4 py-1.5 rounded-xl border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all">
-                                විස්තරය
-                            </button>
-                        )}
                     </div>
+                    {p.description && (
+                        <button onClick={onDescClick}
+                            className="ripple-btn mt-3 w-full py-2.5 rounded-xl sinhala-text text-base font-bold transition-all active:scale-95"
+                            style={{background:'linear-gradient(135deg,rgba(212,175,55,0.18),rgba(212,175,55,0.10))', border:'1.5px solid rgba(212,175,55,0.55)', color:'#FFEE8C', boxShadow:'0 2px 12px rgba(212,175,55,0.15)'}}>
+                            පෝය විස්තරය
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
@@ -822,11 +823,11 @@ function App() {
                         width: 'calc(50% - 4px)',
                     }}/>
                     <button onClick={() => setViewMode('month')}
-                        className={`w-36 py-2.5 sinhala-text text-lg rounded-full transition-colors ${viewMode==='month' ? 'text-[#D4AF37] font-bold' : 'text-white/40'}`}>
+                        className={`w-36 py-2.5 sinhala-text text-lg rounded-full transition-colors ${viewMode==='month' ? 'text-[#D4AF37] font-bold' : 'text-white font-medium'}`}>
                         මාසය
                     </button>
                     <button onClick={() => setViewMode('poya')}
-                        className={`w-36 py-2.5 sinhala-text text-lg rounded-full transition-colors ${viewMode==='poya' ? 'text-[#D4AF37] font-bold' : 'text-white/40'}`}>
+                        className={`w-36 py-2.5 sinhala-text text-lg rounded-full transition-colors ${viewMode==='poya' ? 'text-[#D4AF37] font-bold' : 'text-white font-medium'}`}>
                         පොහොය
                     </button>
                 </div>
@@ -955,16 +956,15 @@ function App() {
                      style={{background:'rgba(2,14,22,0.92)', backdropFilter:'blur(12px)'}}
                      onClick={() => setIsModalOpen(false)}>
                     <div className="modal-pop w-full max-w-xs rounded-3xl overflow-hidden shadow-2xl"
-                         style={{background:'linear-gradient(135deg,#0A2330,#061820)',border:'1px solid rgba(255,255,255,0.08)'}}
+                         style={{background:'linear-gradient(135deg,#0A2330,#061820)',border:'1px solid rgba(255,255,255,0.08)', maxHeight:'80vh', display:'flex', flexDirection:'column'}}
                          onClick={e => e.stopPropagation()}>
-                        <div className="p-5 border-b border-white/5">
-                            <h3 className="sinhala-text text-xl font-bold text-white/70 text-center">මාසය තෝරන්න</h3>
+                        <div className="p-5 border-b border-white/5 flex-shrink-0">
+                            <h3 className="sinhala-text text-xl font-bold text-white text-center">මාසය තෝරන්න</h3>
                         </div>
-                        <div className="p-3 max-h-[65vh] overflow-y-auto no-scrollbar">
+                        <div className="p-3 overflow-y-auto no-scrollbar flex-1">
                             {sinhalaMonths.map(mo => (
                                 <button key={mo.id}
-                                    onClick={() => { setSelectedMonth(mo.id); setMonthKey(k=>k+1); setIsModalOpen(false); }}
-                                    className={`ripple-btn w-full py-3.5 mb-1.5 rounded-xl sinhala-text text-lg transition-all ${selectedMonth===mo.id ? 'month-btn-active' : 'text-white/60 hover:bg-white/5'}`}
+                                    className={`ripple-btn w-full py-3.5 mb-1.5 rounded-xl sinhala-text text-lg transition-all ${selectedMonth===mo.id ? 'month-btn-active' : 'text-white hover:bg-white/5'}`}
                                     style={selectedMonth===mo.id ? {} : {background:'transparent'}}
                                     onClick={(e) => { addRipple(e); setSelectedMonth(mo.id); setMonthKey(k=>k+1); setIsModalOpen(false); }}>
                                     <span>{mo.id===3 ? cleanNikini : mo.name} මස</span>
