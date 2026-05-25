@@ -91,7 +91,7 @@
             animation: shineGold 6s linear infinite;
         }
         .poya-gold {
-            background: linear-gradient(135deg, #7a5a1e 0%, #B8860B 30%, #D4AF37 50%, #B8860B 70%, #7a5a1e 100%);
+            background: linear-gradient(135deg, #D4AF37 0%, #F2D060 20%, #FFEE8C 40%, #FFFCCC 55%, #FFEE8C 70%, #F2D060 85%, #D4AF37 100%);
             background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -373,19 +373,8 @@ function RealisticMoon({ phase = 'full', size = 72, glow = true }) {
     if (phase === 'waxing_q')    litPath = <path d="M50 3 A47 47 0 0 1 50 97 A23 47 0 0 0 50 3 Z" fill={T.moonYellow}/>;
     if (phase === 'waning_q')    litPath = <path d="M50 3 A47 47 0 0 0 50 97 A23 47 0 0 1 50 3 Z" fill={T.moonYellow}/>;
 
-    const glowSize = size * 1.5;
     return (
-        <div className="moon-wrap" style={{width: size, alignItems:'center'}}>
-            {glow && (
-                <div className="moon-glow-ring" style={{
-                    width: glowSize, height: glowSize,
-                    top: '50%', left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    background: phase === 'new'
-                        ? 'radial-gradient(circle, rgba(16,76,102,0.3) 0%, transparent 70%)'
-                        : 'radial-gradient(circle, rgba(255,238,140,0.25) 0%, transparent 65%)',
-                }}/>
-            )}
+        <div className="moon-wrap" style={{width: size, alignItems:'center', position:'relative'}}>
             <svg viewBox="0 0 100 100" width={size} height={size} className="moon-float" style={{position:'relative',zIndex:1}}>
                 <defs>
                     <radialGradient id={`${id}-base`} cx="40%" cy="35%" r="65%">
@@ -438,7 +427,18 @@ function RealisticMoon({ phase = 'full', size = 72, glow = true }) {
                     stroke={phase === 'new' ? 'rgba(212,175,55,0.2)' : 'rgba(255,238,140,0.4)'}
                     strokeWidth="0.8"/>
             </svg>
-            <div className="moon-shadow" style={{width: size*0.7, height: size*0.12, marginTop: 6}}/>
+            {glow && phase !== 'new' && (
+                <div style={{
+                    width: `${size * 0.72}px`, height: `${size * 0.18}px`,
+                    marginTop: `-${size * 0.06}px`,
+                    background: 'radial-gradient(ellipse, rgba(255,238,140,0.65) 0%, rgba(255,228,100,0.2) 55%, transparent 75%)',
+                    filter: `blur(${Math.max(3, size * 0.04)}px)`,
+                    borderRadius: '50%',
+                    pointerEvents: 'none',
+                    flexShrink: 0,
+                }}/>
+            )}
+            <div className="moon-shadow" style={{width: size*0.7, height: size*0.1, marginTop: glow && phase !== 'new' ? 2 : 6}}/>
         </div>
     );
 }
@@ -543,16 +543,9 @@ function App() {
     const [appState, setAppState]       = useState('intro');
     const [viewMode, setViewMode]       = useState('month');
     const [selectedMonth, setSelectedMonth] = useState(0);
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [poyaModal, setPoyaModal]     = useState({ isOpen: false, data: null });
     const [expandedPoyaType, setExpandedPoyaType] = useState(null);
     const [monthKey, setMonthKey]       = useState(0);
-
-    useEffect(() => {
-        if (appState === 'main') {
-            document.body.classList.toggle('modal-open', isModalOpen || poyaModal.isOpen);
-        }
-    }, [isModalOpen, poyaModal.isOpen, appState]);
 
     const cleanNikini = "නිකිණි";
 
@@ -808,6 +801,7 @@ function App() {
     const phases = getMoonPhasesForMonth(selectedMonth);
 
     return (
+    <React.Fragment>
         <main className="flex-1 relative w-full flex flex-col items-center py-10 md:py-16 fade-up min-h-screen" style={{zIndex:1}}>
 
             {/* Header */}
@@ -836,28 +830,23 @@ function App() {
             {/* Month view */}
             {viewMode === 'month' ? (
                 <div className="w-full max-w-5xl px-4 flex flex-col items-center">
-                    {/* Month navigator */}
-                    <div className="flex items-center space-x-6 mb-8 w-full max-w-lg justify-center">
-                        <button onClick={() => changeMonth(-1)}
-                            disabled={selectedMonth === 0}
-                            className="w-12 h-12 rounded-full glass-card flex items-center justify-center text-white/50 hover:text-white disabled:opacity-20 transition-all active:scale-90 ripple-btn"
+                    {/* Month navigator — arrows only */}
+                    <div className="flex items-center space-x-5 mb-8 w-full max-w-lg justify-center">
+                        <button disabled={selectedMonth === 0}
+                            className="w-12 h-12 rounded-full glass-card flex items-center justify-center text-white disabled:opacity-20 transition-all active:scale-90 ripple-btn"
                             onClick={(e) => { addRipple(e); changeMonth(-1); }}>
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" strokeWidth={2.5} strokeLinecap="round"/></svg>
                         </button>
 
-                        <div onClick={() => setIsModalOpen(true)} className="text-center cursor-pointer group flex-1">
-                            <div className="flex items-center justify-center space-x-2 mb-0.5">
-                                <h2 className="sinhala-text text-3xl md:text-4xl font-bold text-white group-hover:text-[#FFEE8C] transition-colors">
-                                    {m.id === 3 ? cleanNikini : m.name} මාසය
-                                </h2>
-                                <svg className="w-4 h-4 text-white/30 group-hover:text-[#FFEE8C] transition-colors mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" strokeWidth={2} strokeLinecap="round"/></svg>
-                            </div>
-                            <p className="text-xs tracking-widest text-white/30 serif uppercase">{m.year} · {m.en}</p>
+                        <div className="text-center flex-1">
+                            <h2 className="sinhala-text text-3xl md:text-4xl font-bold text-white">
+                                {m.id === 3 ? cleanNikini : m.name} මාසය
+                            </h2>
+                            <p className="text-xs tracking-widest text-white/30 serif uppercase mt-0.5">{m.year} · {m.en}</p>
                         </div>
 
-                        <button
-                            disabled={selectedMonth === 11}
-                            className="w-12 h-12 rounded-full glass-card flex items-center justify-center text-white/50 hover:text-white disabled:opacity-20 transition-all active:scale-90 ripple-btn"
+                        <button disabled={selectedMonth === 11}
+                            className="w-12 h-12 rounded-full glass-card flex items-center justify-center text-white disabled:opacity-20 transition-all active:scale-90 ripple-btn"
                             onClick={(e) => { addRipple(e); changeMonth(1); }}>
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth={2.5} strokeLinecap="round"/></svg>
                         </button>
@@ -909,77 +898,50 @@ function App() {
                 </div>
             )}
 
-            {/* ── Poya description modal ── */}
-            {poyaModal.isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-4 md:p-6"
-                     style={{background:'rgba(2,14,22,0.92)', backdropFilter:'blur(12px)'}}
-                     onClick={() => setPoyaModal({isOpen:false,data:null})}>
-                    <div className="modal-pop w-full max-w-md rounded-[2rem] overflow-hidden shadow-2xl"
-                         style={{border:'1px solid rgba(212,175,55,0.2)'}}
-                         onClick={e => e.stopPropagation()}>
-                        {/* Header */}
-                        <div className="p-6 pb-4" style={{background:'linear-gradient(135deg,#FFFFF0,#FFF8DC)'}}>
-                            <div className="flex items-center justify-between">
-                                <h3 className="sinhala-text text-2xl font-bold leading-tight">
-                                    <span className="poya-gold">{poyaModal.data?.monthName} මස</span>
-                                </h3>
-                                <button onClick={() => setPoyaModal({isOpen:false,data:null})}
-                                    className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center text-[#083A4F]/60 hover:bg-black/20 transition-all">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={2}/></svg>
-                                </button>
-                            </div>
-                            <p className="sinhala-text text-lg font-bold text-[#083A4F]/70">පොහොය විස්තරය</p>
-                        </div>
-                        {/* Body */}
-                        <div className="p-6 max-h-[55vh] overflow-y-auto modal-scroll"
-                             style={{background:'linear-gradient(to bottom,#FFFCF5,#FDFBF0)'}}>
-                            <p className="sinhala-text text-[18px] text-[#083A4F] leading-[1.7] text-justify whitespace-pre-line">
-                                {poyaModal.data?.description}
-                            </p>
-                        </div>
-                        {/* Footer */}
-                        <div className="p-4" style={{background:'#FDFBF0'}}>
-                            <button onClick={() => setPoyaModal({isOpen:false,data:null})}
-                                className="ripple-btn w-full py-3.5 rounded-2xl sinhala-text text-lg font-bold text-white transition-all active:scale-98"
-                                style={{background:'linear-gradient(135deg,#083A4F,#0d5570)',boxShadow:'0 4px 16px rgba(0,0,0,0.3)'}}
-                                onClick={(e) => { addRipple(e); setPoyaModal({isOpen:false,data:null}); }}>
-                                පෙර මෙනුවට
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* ── Month picker modal ── */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6"
-                     style={{background:'rgba(2,14,22,0.92)', backdropFilter:'blur(12px)'}}
-                     onClick={() => setIsModalOpen(false)}>
-                    <div className="modal-pop w-full max-w-xs rounded-3xl overflow-hidden shadow-2xl"
-                         style={{background:'linear-gradient(135deg,#0A2330,#061820)',border:'1px solid rgba(255,255,255,0.08)', maxHeight:'80vh', display:'flex', flexDirection:'column'}}
-                         onClick={e => e.stopPropagation()}>
-                        <div className="p-5 border-b border-white/5 flex-shrink-0">
-                            <h3 className="sinhala-text text-xl font-bold text-white text-center">මාසය තෝරන්න</h3>
-                        </div>
-                        <div className="p-3 overflow-y-auto no-scrollbar flex-1">
-                            {sinhalaMonths.map(mo => (
-                                <button key={mo.id}
-                                    className={`ripple-btn w-full py-3.5 mb-1.5 rounded-xl sinhala-text text-lg transition-all ${selectedMonth===mo.id ? 'month-btn-active' : 'text-white hover:bg-white/5'}`}
-                                    style={selectedMonth===mo.id ? {} : {background:'transparent'}}
-                                    onClick={(e) => { addRipple(e); setSelectedMonth(mo.id); setMonthKey(k=>k+1); setIsModalOpen(false); }}>
-                                    <span>{mo.id===3 ? cleanNikini : mo.name} මස</span>
-                                    <span className="ml-2 text-sm opacity-50 serif">{mo.year}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
-
             <footer className="z-10 mt-12 mb-6 opacity-20 text-[10px] tracking-widest uppercase text-white serif">
                 © Aloko Udapadi
             </footer>
         </main>
+
+        {/* ── Poya description modal — rendered outside <main> so stacking context doesn't clip it ── */}
+        {poyaModal.isOpen && (
+            <div style={{position:'fixed',inset:0,zIndex:500,display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',background:'rgba(2,14,22,0.93)',backdropFilter:'blur(14px)'}}
+                 onClick={() => setPoyaModal({isOpen:false,data:null})}>
+                <div className="modal-pop w-full max-w-md rounded-[2rem] overflow-hidden shadow-2xl"
+                     style={{border:'1px solid rgba(212,175,55,0.25)', maxHeight:'85vh', display:'flex', flexDirection:'column'}}
+                     onClick={e => e.stopPropagation()}>
+                    {/* Header */}
+                    <div className="p-6 pb-4 flex-shrink-0" style={{background:'linear-gradient(135deg,#FFFFF0,#FFF8DC)'}}>
+                        <div className="flex items-center justify-between">
+                            <h3 className="sinhala-text text-2xl font-bold leading-tight">
+                                <span className="poya-gold">{poyaModal.data?.monthName} මස</span>
+                            </h3>
+                            <button onClick={() => setPoyaModal({isOpen:false,data:null})}
+                                className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center text-[#083A4F]/60 hover:bg-black/20 transition-all">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={2}/></svg>
+                            </button>
+                        </div>
+                        <p className="sinhala-text text-lg font-bold text-[#083A4F]/70">පොහොය විස්තරය</p>
+                    </div>
+                    {/* Body */}
+                    <div className="p-6 overflow-y-auto modal-scroll flex-1"
+                         style={{background:'linear-gradient(to bottom,#FFFCF5,#FDFBF0)'}}>
+                        <p className="sinhala-text text-[18px] text-[#083A4F] leading-[1.7] text-justify whitespace-pre-line">
+                            {poyaModal.data?.description}
+                        </p>
+                    </div>
+                    {/* Footer */}
+                    <div className="p-4 flex-shrink-0" style={{background:'#FDFBF0'}}>
+                        <button className="ripple-btn w-full py-3.5 rounded-2xl sinhala-text text-lg font-bold text-white transition-all active:scale-95"
+                            style={{background:'linear-gradient(135deg,#083A4F,#0d5570)',boxShadow:'0 4px 16px rgba(0,0,0,0.3)'}}
+                            onClick={(e) => { addRipple(e); setPoyaModal({isOpen:false,data:null}); }}>
+                            පෙර මෙනුවට
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+    </React.Fragment>
     );
 }
 
