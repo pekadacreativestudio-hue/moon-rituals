@@ -4,629 +4,987 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Moon Rituals - Aloko Udapadi</title>
-    
-    <!-- Core Libraries with Mobile & Desktop stability -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap');
 
         :root {
-            --c-navy: #0D4B63;
-            --c-sand: #E5E1DD;
+            --gold: #D4AF37;
+            --moon-yellow: #FFEE8C;
+            --navy: #083A4F;
+            --deep: #020E16;
         }
+
+        *, *::before, *::after { box-sizing: border-box; }
 
         html, body, #root {
             height: 100%;
-            margin: 0;
-            padding: 0;
-            background: #051921;
+            margin: 0; padding: 0;
         }
 
         body {
-            /* 15% Lightened background */
-            background: radial-gradient(circle at center, #104C66 0%, #051921 100%);
-            background-attachment: fixed;
+            background: #020E16;
             color: #E5E1DD;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', sans-serif;
             overflow-x: hidden;
             min-height: 100dvh;
-            display: flex;
-            flex-direction: column;
         }
 
         body.modal-open { overflow: hidden; position: fixed; width: 100%; }
+
         h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
-        .sinhala-text { font-family: 'Abhaya Libre', 'Sinhala Sangam MN', 'Sinhala MN', 'Iskoola Pota', serif; }
+        .sinhala-text { font-family: 'Abhaya Libre', 'Sinhala Sangam MN', serif; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Two-line heading logic for both Desktop and Mobile */
-        .forced-two-lines {
-            display: block;
-            line-height: 0.85;
-            text-align: center;
+        /* ── Canvas starfield ── */
+        #star-canvas {
+            position: fixed; inset: 0; z-index: 0;
+            pointer-events: none;
         }
 
-        .title-gold-gradient {
-            background: linear-gradient(to right, #B8860B 0%, #D4AF37 25%, #FFEE8C 50%, #D4AF37 75%, #B8860B 100%);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shineGold 8s linear infinite;
+        /* ── Aurora background ── */
+        .aurora {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            overflow: hidden;
+        }
+        .aurora-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            mix-blend-mode: screen;
+            opacity: 0.18;
+            animation: auroraDrift 20s ease-in-out infinite alternate;
+        }
+        .aurora-blob:nth-child(1) { width: 60vw; height: 60vw; background: #1a6b8a; top: -20%; left: -10%; animation-duration: 22s; }
+        .aurora-blob:nth-child(2) { width: 50vw; height: 50vw; background: #0d3d5c; top: 30%; right: -15%; animation-duration: 18s; animation-delay: -8s; }
+        .aurora-blob:nth-child(3) { width: 40vw; height: 40vw; background: #2a5c6a; bottom: -10%; left: 20%; animation-duration: 25s; animation-delay: -5s; }
+        @keyframes auroraDrift {
+            0%   { transform: translate(0,0) scale(1); }
+            50%  { transform: translate(5vw, 3vh) scale(1.1); }
+            100% { transform: translate(-3vw, 6vh) scale(0.95); }
         }
 
-        .poya-gold-gradient {
-            background: linear-gradient(to right, #5C4033 0%, #8B6D3B 25%, #B8860B 50%, #8B6D37 75%, #5C4033 100%);
+        /* ── Loader ── */
+        #loader-css {
+            position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+            background: #020E16; z-index: 9999; flex-direction: column; gap: 16px;
+        }
+        .loader-ring {
+            width: 48px; height: 48px;
+            border: 3px solid rgba(212,175,55,0.12);
+            border-top-color: #D4AF37;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Gold gradients ── */
+        .title-gold {
+            background: linear-gradient(135deg, #B8860B 0%, #D4AF37 30%, #FFEE8C 50%, #D4AF37 70%, #B8860B 100%);
             background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             animation: shineGold 6s linear infinite;
+        }
+        .poya-gold {
+            background: linear-gradient(135deg, #7a5a1e 0%, #B8860B 30%, #D4AF37 50%, #B8860B 70%, #7a5a1e 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shineGold 5s linear infinite;
             display: inline-block;
         }
-
         @keyframes shineGold { to { background-position: 200% center; } }
 
-        .live-ivory-bg {
-            background: linear-gradient(-45deg, #FFFFF0, #FFFFFF, #F8F4E3, #FFFFF0);
-            background-size: 300% 300%;
-            animation: ivoryFlow 8s ease-in-out infinite;
-            box-shadow: inset 0 0 40px rgba(255, 255, 255, 0.5);
+        /* ── Realistic Moon ── */
+        .moon-wrap {
+            position: relative;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .moon-glow-ring {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: glowPulse 4s ease-in-out infinite;
+        }
+        @keyframes glowPulse {
+            0%,100% { opacity: 0.4; transform: scale(1); }
+            50%      { opacity: 0.7; transform: scale(1.08); }
+        }
+        .moon-float { animation: moonFloat 5s ease-in-out infinite; }
+        @keyframes moonFloat {
+            0%,100% { transform: translateY(0); }
+            50%      { transform: translateY(-12px); }
+        }
+        .moon-shadow {
+            border-radius: 50%;
+            background: radial-gradient(ellipse, rgba(0,0,0,0.4) 0%, transparent 70%);
+            filter: blur(6px);
+            animation: shadowPulse 5s ease-in-out infinite;
+        }
+        @keyframes shadowPulse {
+            0%,100% { transform: scaleX(1); opacity: 0.5; }
+            50%      { transform: scaleX(0.8); opacity: 0.2; }
         }
 
+        /* ── Glass cards ── */
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+            border: 1px solid rgba(212,175,55,0.18);
+            border-radius: 2rem;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 30px rgba(212,175,55,0.08), inset 0 1px 0 rgba(255,255,255,0.1);
+            border-color: rgba(212,175,55,0.35);
+        }
+
+        /* Ivory cards (for accordions) */
+        .ivory-card {
+            background: linear-gradient(-45deg, #FFFFF0, #FFFFFF, #F8F4E3, #FFFCF0);
+            background-size: 300% 300%;
+            animation: ivoryFlow 10s ease-in-out infinite;
+            border-radius: 2.1rem;
+        }
         @keyframes ivoryFlow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
 
-        @keyframes floatParticle {
-            0% { transform: translateY(0) translateX(0); opacity: 0; }
-            25% { opacity: 0.5; }
-            100% { transform: translateY(-100vh) translateX(20px); opacity: 0; }
-        }
-
-        .particle { position: fixed; background: white; border-radius: 50%; pointer-events: none; z-index: 0; filter: blur(1px); }
-
-        @keyframes moonLive {
-            0%, 100% { transform: scale(1) translateY(0); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15)) drop-shadow(0 0 10px rgba(255, 238, 140, 0.3)); }
-            50% { transform: scale(1.1) translateY(-15px); filter: drop-shadow(0 20px 20px rgba(0,0,0,0.2)) drop-shadow(0 15px 25px rgba(255, 238, 140, 0.5)); }
-        }
-        .live-moon-anim { animation: moonLive 4s ease-in-out infinite; }
-        @keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        .accordion-content {
-            max-height: 0;
+        /* ── Spinning border conic ── */
+        .spin-border {
+            position: relative;
+            border-radius: 2.2rem;
             overflow: hidden;
-            transition: max-height 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+        }
+        .spin-border::before {
+            content: '';
+            position: absolute;
+            inset: -100%;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0%,
+                #D4AF37 10%, #FFEE8C 15%, #D4AF37 20%,
+                transparent 30%, transparent 50%,
+                #D4AF37 60%, #FFEE8C 65%, #D4AF37 70%,
+                transparent 80%
+            );
+            animation: spinBorder 8s linear infinite;
+            z-index: 0;
+        }
+        .spin-border > * { position: relative; z-index: 1; }
+        @keyframes spinBorder { to { transform: rotate(360deg); } }
+
+        /* ── Accordion ── */
+        .accordion-body {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.8s cubic-bezier(0.4,0,0.2,1), opacity 0.5s ease;
             opacity: 0;
         }
-        .accordion-expanded {
-            max-height: 4000px;
-            opacity: 1;
+        .accordion-body.open { max-height: 5000px; opacity: 1; }
+
+        /* ── Page fade ── */
+        .fade-up { animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+
+        /* ── Month card stagger ── */
+        .card-enter { opacity: 0; transform: translateY(20px) scale(0.97); }
+        .card-enter-active { transition: opacity 0.5s ease, transform 0.5s ease; }
+
+        /* ── Ripple ── */
+        .ripple-btn {
+            position: relative; overflow: hidden;
+            cursor: pointer; user-select: none;
         }
-
-        .fade-up { animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        #loader-css {
-            position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-            background: #051921; z-index: 9999;
+        .ripple-btn .ripple-effect {
+            position: absolute; border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
         }
+        @keyframes ripple { to { transform: scale(4); opacity: 0; } }
 
+        /* ── Modal ── */
         @keyframes modalPop {
-            0% { opacity: 0; transform: scale(0.9) translateY(30px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
+            0%   { opacity:0; transform:scale(0.88) translateY(32px); }
+            100% { opacity:1; transform:scale(1) translateY(0); }
         }
-        .animate-modal-pop { animation: modalPop 0.5s cubic-bezier(0.2, 1, 0.3, 1) forwards; }
+        .modal-pop { animation: modalPop 0.45s cubic-bezier(0.2,1,0.3,1) forwards; }
+
+        /* ── Toggle pill ── */
+        .tab-pill {
+            position: relative;
+            display: flex; gap: 0;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 9999px;
+            padding: 4px;
+            backdrop-filter: blur(8px);
+        }
+        .tab-pill .tab-indicator {
+            position: absolute; top: 4px; bottom: 4px;
+            border-radius: 9999px;
+            background: #083A4F;
+            transition: left 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s ease;
+            z-index: 0;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+        }
+        .tab-pill button { position: relative; z-index: 1; }
+
+        /* ── Time badge ── */
+        .time-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: linear-gradient(135deg, #083A4F 0%, #0d4f6e 100%);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 10px;
+            padding: 6px 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        /* ── Intro devotional text ── */
+        .devot-line { opacity: 0; transform: translateY(12px); animation: devLine 0.7s forwards; }
+        @keyframes devLine { to { opacity:1; transform:translateY(0); } }
+
+        /* ── Scrollbar in modals ── */
+        .modal-scroll { scrollbar-width: thin; scrollbar-color: rgba(212,175,55,0.3) transparent; }
+        .modal-scroll::-webkit-scrollbar { width: 4px; }
+        .modal-scroll::-webkit-scrollbar-track { background: transparent; }
+        .modal-scroll::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.3); border-radius: 2px; }
+
+        /* ── Month selector modal ── */
+        .month-btn-active {
+            background: linear-gradient(135deg, #D4AF37, #FFEE8C) !important;
+            color: #021017 !important;
+            font-weight: 700;
+            box-shadow: 0 4px 16px rgba(212,175,55,0.4);
+        }
+
+        /* Poya row hover */
+        .poya-row {
+            transition: background 0.2s, transform 0.2s;
+            border-radius: 1rem;
+        }
+        .poya-row:hover { background: rgba(255,255,255,0.65); transform: translateX(4px); }
     </style>
 </head>
 <body>
-    <div id="root">
-        <div id="loader-css">
-            <div style="width: 40px; height: 40px; border: 3px solid rgba(212, 175, 55, 0.1); border-top-color: #D4AF37; border-radius: 50%; animation: rotateGlow 1s linear infinite;"></div>
-        </div>
+<canvas id="star-canvas"></canvas>
+<div class="aurora">
+    <div class="aurora-blob"></div>
+    <div class="aurora-blob"></div>
+    <div class="aurora-blob"></div>
+</div>
+
+<div id="root">
+    <div id="loader-css">
+        <div class="loader-ring"></div>
+        <p style="font-family:'Abhaya Libre',serif;color:rgba(212,175,55,0.6);font-size:14px;letter-spacing:0.2em;">LOADING</p>
     </div>
+</div>
 
-    <script type="text/babel">
-        const { useState, useRef, useEffect, useMemo } = React;
-
-        const theme = {
-            deepNavy: '#051921',
-            navy: '#104C66',
-            darkGold: '#5C4033',     
-            copper: '#915F33',       
-            moonYellow: '#FFEE8C',   
-            brightGold: '#D4AF37',   
-        };
-
-        const MovingParticles = () => {
-            const particles = useMemo(() => Array.from({ length: 25 }).map((_, i) => ({
-                id: i, size: Math.random() * 2 + 1, left: `${Math.random() * 100}%`, bottom: `-${Math.random() * 50}%`,
-                duration: Math.random() * 20 + 10, delay: Math.random() * 10
-            })), []);
-            return (
-                <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-                    {particles.map(p => (
-                        <div key={p.id} className="particle" style={{
-                            width: `${p.size}px`, height: `${p.size}px`, left: p.left, bottom: p.bottom,
-                            animation: `floatParticle ${p.duration}s linear infinite`, animationDelay: `${p.delay}s`
-                        }} />
-                    ))}
-                </div>
+<script>
+/* ── Starfield canvas ── */
+(function(){
+    const c = document.getElementById('star-canvas');
+    const resize = () => { c.width = window.innerWidth; c.height = window.innerHeight; };
+    resize(); window.addEventListener('resize', resize);
+    const ctx = c.getContext('2d');
+    const N = 220;
+    const stars = Array.from({length:N}, () => ({
+        x: Math.random(), y: Math.random(),
+        r: Math.random() * 1.4 + 0.2,
+        a: Math.random(),
+        da: (Math.random() - 0.5) * 0.006,
+        speed: Math.random() * 0.00004 + 0.00001,
+        hue: Math.random() < 0.15 ? 45 : 0
+    }));
+    function draw(t){
+        ctx.clearRect(0,0,c.width,c.height);
+        stars.forEach(s => {
+            s.a = Math.max(0.05, Math.min(1, s.a + s.da));
+            if(s.a <= 0.05 || s.a >= 1) s.da *= -1;
+            s.y -= s.speed;
+            if(s.y < 0) { s.y = 1; s.x = Math.random(); }
+            ctx.save();
+            ctx.globalAlpha = s.a;
+            const grd = ctx.createRadialGradient(
+                s.x*c.width, s.y*c.height, 0,
+                s.x*c.width, s.y*c.height, s.r*2.5
             );
-        };
+            const col = s.hue===45 ? `rgba(255,238,140,1)` : `rgba(255,255,255,1)`;
+            const colT = s.hue===45 ? `rgba(255,238,140,0)` : `rgba(200,220,255,0)`;
+            grd.addColorStop(0, col);
+            grd.addColorStop(1, colT);
+            ctx.beginPath();
+            ctx.arc(s.x*c.width, s.y*c.height, s.r*2.5, 0, Math.PI*2);
+            ctx.fillStyle = grd;
+            ctx.fill();
+            ctx.restore();
+        });
+        requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+})();
+</script>
 
-        const MoonCraters = ({ color, opacity }) => (
-            <React.Fragment>
-                <circle cx="35" cy="35" r="7" fill={color} opacity={opacity} />
-                <circle cx="65" cy="55" r="10" fill={color} opacity={opacity} />
-                <circle cx="45" cy="70" r="5" fill={color} opacity={opacity} />
-                <circle cx="25" cy="60" r="4" fill={color} opacity={opacity} />
-                <circle cx="70" cy="30" r="4.5" fill={color} opacity={opacity} />
-            </React.Fragment>
-        );
+<script type="text/babel">
+const { useState, useRef, useEffect, useMemo, useCallback } = React;
 
-        const MoonBase = ({ children, className, hasLitSide, isSmall = false }) => (
-            <div className="relative flex flex-col items-center">
-                <div className={`${isSmall ? 'w-12 h-12' : 'w-16 h-16 md:w-20 md:h-20'} relative rounded-full transition-all duration-700 live-moon-anim ${className}`}>
-                    <svg viewBox="0 0 100 100" className="w-full h-full">
-                        <circle cx="50" cy="50" r="48" fill="#104C66" />
-                        
-                        {/* Light craters for dark side */}
-                        <MoonCraters color="white" opacity="0.08" />
-                        
-                        {/* Moon phases lit portions */}
-                        {children}
-                        
-                        {/* Dark craters for light side / full moon */}
-                        {children && <MoonCraters color="#021017" opacity="0.12" />}
-                        
-                        {hasLitSide && <circle cx="50" cy="50" r="48" fill={theme.darkGold} opacity="0.1" />}
-                        <circle cx="50" cy="50" r="49" fill="none" stroke={theme.moonYellow} strokeWidth="0.5" opacity="0.4" />
-                    </svg>
-                </div>
-                <div className={`${isSmall ? 'w-8 h-1' : 'w-12 h-2'} bg-[#021017] rounded-[100%] blur-[4px] opacity-20 mt-2`}></div>
-            </div>
-        );
+const T = {
+    deep: '#020E16', navy: '#083A4F', navyMid: '#104C66',
+    gold: '#D4AF37', darkGold: '#B8860B', moonYellow: '#FFEE8C',
+    copper: '#8B5E2F', sand: '#E5E1DD',
+};
 
-        const SandglassIcon = () => (
-            <svg className="w-3.5 h-3.5 md:w-4 md:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M6 2H18M6 22H18M7 2V6.5C7 8.5 8.5 10 10.5 10.5L13.5 11.5C15.5 12 17 13.5 17 15.5V22M17 2V6.5C17 8.5 15.5 10 13.5 10.5L10.5 11.5C8.5 12 7 13.5 7 15.5V22" strokeLinecap="round" strokeLinejoin="round"/>
+/* ── Ripple helper ── */
+function addRipple(e) {
+    const btn = e.currentTarget;
+    const circle = document.createElement('span');
+    const d = Math.max(btn.offsetWidth, btn.offsetHeight);
+    const r = btn.getBoundingClientRect();
+    circle.className = 'ripple-effect';
+    circle.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX-r.left-d/2}px;top:${e.clientY-r.top-d/2}px`;
+    btn.appendChild(circle);
+    setTimeout(() => circle.remove(), 700);
+}
+
+/* ── Realistic Moon SVG ── */
+function RealisticMoon({ phase = 'full', size = 72, glow = true }) {
+    const id = useMemo(() => 'moon-' + Math.random().toString(36).slice(2), []);
+    const craters = [
+        { cx:32, cy:34, r:7  }, { cx:62, cy:52, r:9  },
+        { cx:44, cy:68, r:5  }, { cx:24, cy:58, r:4  },
+        { cx:68, cy:28, r:4.5}, { cx:55, cy:75, r:3.5},
+        { cx:18, cy:40, r:3  }, { cx:72, cy:60, r:3  },
+    ];
+
+    let litPath = null;
+    if (phase === 'full')        litPath = <circle cx="50" cy="50" r="47" fill={T.moonYellow} />;
+    if (phase === 'waxing_q')    litPath = <path d="M50 3 A47 47 0 0 1 50 97 A23 47 0 0 0 50 3 Z" fill={T.moonYellow}/>;
+    if (phase === 'waning_q')    litPath = <path d="M50 3 A47 47 0 0 0 50 97 A23 47 0 0 1 50 3 Z" fill={T.moonYellow}/>;
+
+    const glowSize = size * 1.5;
+    return (
+        <div className="moon-wrap" style={{width: size, alignItems:'center'}}>
+            {glow && (
+                <div className="moon-glow-ring" style={{
+                    width: glowSize, height: glowSize,
+                    top: '50%', left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    background: phase === 'new'
+                        ? 'radial-gradient(circle, rgba(16,76,102,0.3) 0%, transparent 70%)'
+                        : 'radial-gradient(circle, rgba(255,238,140,0.25) 0%, transparent 65%)',
+                }}/>
+            )}
+            <svg viewBox="0 0 100 100" width={size} height={size} className="moon-float" style={{position:'relative',zIndex:1}}>
+                <defs>
+                    <radialGradient id={`${id}-base`} cx="40%" cy="35%" r="65%">
+                        <stop offset="0%"   stopColor="#1a6b8a"/>
+                        <stop offset="50%"  stopColor="#0d4460"/>
+                        <stop offset="100%" stopColor="#041522"/>
+                    </radialGradient>
+                    <radialGradient id={`${id}-lit`} cx="38%" cy="32%" r="70%">
+                        <stop offset="0%"   stopColor="#fff9d4"/>
+                        <stop offset="40%"  stopColor={T.moonYellow}/>
+                        <stop offset="100%" stopColor="#c9a820"/>
+                    </radialGradient>
+                    <radialGradient id={`${id}-highlight`} cx="30%" cy="25%" r="40%">
+                        <stop offset="0%" stopColor="rgba(255,255,255,0.35)"/>
+                        <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
+                    </radialGradient>
+                    <filter id={`${id}-shadow`} x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+                        <feOffset dx="2" dy="3"/>
+                        <feComposite in2="SourceGraphic" operator="over"/>
+                    </filter>
+                    <clipPath id={`${id}-clip`}><circle cx="50" cy="50" r="47"/></clipPath>
+                </defs>
+
+                {/* Base sphere */}
+                <circle cx="50" cy="50" r="47" fill={`url(#${id}-base)`}/>
+
+                {/* Lit phase */}
+                {phase !== 'new' && (
+                    <g clipPath={`url(#${id}-clip)`}>
+                        {phase === 'full' && <circle cx="50" cy="50" r="47" fill={`url(#${id}-lit)`}/>}
+                        {phase === 'waxing_q' && <path d="M50 3 A47 47 0 0 1 50 97 Q50 97 50 3 Z" fill={`url(#${id}-lit)`}/>}
+                        {phase === 'waning_q' && <path d="M50 3 A47 47 0 0 0 50 97 Q50 97 50 3 Z" fill={`url(#${id}-lit)`}/>}
+                    </g>
+                )}
+
+                {/* Craters (dark on light, light on dark) */}
+                {craters.map((cr, i) => (
+                    <circle key={i} cx={cr.cx} cy={cr.cy} r={cr.r}
+                        fill={phase === 'new' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.1)'}
+                        clipPath={`url(#${id}-clip)`}
+                    />
+                ))}
+
+                {/* Highlight shine */}
+                <circle cx="50" cy="50" r="47" fill={`url(#${id}-highlight)`} clipPath={`url(#${id}-clip)`}/>
+
+                {/* Rim */}
+                <circle cx="50" cy="50" r="47" fill="none"
+                    stroke={phase === 'new' ? 'rgba(212,175,55,0.2)' : 'rgba(255,238,140,0.4)'}
+                    strokeWidth="0.8"/>
             </svg>
-        );
+            <div className="moon-shadow" style={{width: size*0.7, height: size*0.12, marginTop: 6}}/>
+        </div>
+    );
+}
 
-        const PoyaCategoryCard = ({ title, icon: Icon, occurrences, isExpanded, onToggle }) => (
-            <div className="w-full flex justify-center px-4 z-10 relative my-4">
-                <div onClick={onToggle} className="w-full max-w-lg rounded-[2.2rem] p-[2.5px] relative overflow-hidden cursor-pointer shadow-2xl transition-transform active:scale-[0.98]">
-                    <div className="absolute inset-[-100%] z-0" style={{ background: `conic-gradient(from 0deg, transparent 0%, ${theme.brightGold} 10%, ${theme.moonYellow} 15%, ${theme.brightGold} 20%, transparent 30%, transparent 50%, ${theme.brightGold} 60%, ${theme.moonYellow} 65%, ${theme.brightGold} 70%, transparent 80%)`, animation: 'rotateGlow 10s linear infinite', opacity: 0.95 }} />
-                    <div className="relative z-10 w-full rounded-[2.1rem] live-ivory-bg overflow-hidden flex flex-col">
-                        <div className="p-7 md:p-8 flex items-center space-x-6">
-                            <div className="flex-shrink-0"><Icon /></div>
-                            <div className="flex-grow">
-                                <h2 className="text-3xl md:text-4xl tracking-tight sinhala-text font-extrabold leading-tight"><span className="poya-gold-gradient">{title}</span></h2>
-                                <p className="sinhala-text text-sm text-[#083A4F] opacity-60">වසරේ සියලු පෝය දින බැලීමට ක්ලික් කරන්න</p>
-                            </div>
+function MoonIcon({ phase = 'full', size = 48 }) {
+    return <RealisticMoon phase={phase} size={size} glow={false}/>;
+}
+
+/* ── Sandglass icon ── */
+const SandglassIcon = () => (
+    <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+        <path d="M6 2H18M6 22H18M7 2V6.5C7 8.5 8.5 10 10.5 10.5L13.5 11.5C15.5 12 17 13.5 17 15.5V22M17 2V6.5C17 8.5 15.5 10 13.5 10.5L10.5 11.5C8.5 12 7 13.5 7 15.5V22" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+);
+
+/* ── Poya Category Card ── */
+function PoyaCategoryCard({ title, moonPhase, occurrences, isExpanded, onToggle }) {
+    return (
+        <div className="w-full flex justify-center px-4 z-10 relative my-3">
+            <div className="w-full max-w-lg spin-border cursor-pointer" style={{padding:'2.5px'}} onClick={onToggle}>
+                <div className="ivory-card overflow-hidden">
+                    <div className="p-6 md:p-7 flex items-center space-x-5 ripple-btn" onClick={addRipple}>
+                        <div className="flex-shrink-0">
+                            <MoonIcon phase={moonPhase} size={52}/>
                         </div>
-                        <div className={`accordion-content ${isExpanded ? 'accordion-expanded' : ''}`}>
-                            <div className="px-5 pb-8 space-y-2">
-                                <div className="h-px bg-black/10 w-full mb-3 mx-2"></div>
-                                {occurrences.map((item, idx) => (
-                                    <div key={item.sinhalaDate + idx} className="flex flex-col py-3 px-6 rounded-2xl bg-white/40 border border-black/5 silk-transition hover:bg-white/60">
-                                        <span className="sinhala-text text-[20px] md:text-[22px] font-bold leading-tight mb-0.5" style={{ color: theme.copper }}>{item.year} {item.monthName} මස {title}</span>
-                                        <span className="sinhala-text text-base md:text-lg font-bold text-[#083A4F] leading-tight mb-0.5">{item.sinhalaDate}</span>
-                                        <div className="flex items-center space-x-1.5 text-[#083A4F] font-bold"><SandglassIcon /><span className="sinhala-text text-base md:text-lg">{item.time}</span></div>
+                        <div className="flex-grow min-w-0">
+                            <h2 className="text-2xl md:text-3xl sinhala-text font-extrabold leading-tight">
+                                <span className="poya-gold">{title}</span>
+                            </h2>
+                            <p className="sinhala-text text-sm text-[#083A4F]/60 mt-0.5">
+                                වසරේ සියලු පෝය දින බැලීමට ක්ලික් කරන්න
+                            </p>
+                        </div>
+                        <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#B8860B" strokeWidth="2.5" className="w-5 h-5 transition-transform duration-500" style={{transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'}}>
+                                <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div className={`accordion-body ${isExpanded ? 'open' : ''}`}>
+                        <div className="px-5 pb-7 space-y-2">
+                            <div className="h-px bg-black/10 mx-3 mb-4"/>
+                            {occurrences.map((item, idx) => (
+                                <div key={idx} className="poya-row flex flex-col py-3 px-5 bg-white/40 border border-black/5">
+                                    <span className="sinhala-text text-[19px] md:text-[21px] font-bold leading-tight" style={{color: T.copper}}>
+                                        {item.year} {item.monthName} මස {title}
+                                    </span>
+                                    <span className="sinhala-text text-base md:text-lg font-bold text-[#083A4F] mt-0.5">{item.sinhalaDate}</span>
+                                    <div className="flex items-center space-x-1.5 text-[#083A4F]/80 font-semibold mt-1">
+                                        <SandglassIcon/><span className="sinhala-text text-base">{item.time}</span>
                                     </div>
-                                ))}
-                            </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+    );
+}
+
+/* ── Phase card ── */
+function PhaseCard({ p, idx, selectedMonth, cleanNikini, sinhalaMonths, onDescClick }) {
+    const [entered, setEntered] = useState(false);
+    useEffect(() => {
+        const t = setTimeout(() => setEntered(true), idx * 120);
+        return () => clearTimeout(t);
+    }, [idx]);
+
+    return (
+        <div className="w-full max-w-lg mb-5 glass-card overflow-hidden fade-up"
+             style={{animationDelay: `${idx*0.1}s`, opacity: entered ? undefined : 0}}>
+            <div className="p-6 md:p-7 flex items-center space-x-5">
+                <div className="flex-shrink-0">
+                    <MoonIcon phase={p.moonPhase} size={60}/>
+                </div>
+                <div className="flex-grow min-w-0">
+                    <h3 className="text-2xl md:text-3xl font-bold poya-gold sinhala-text leading-tight">{p.title}</h3>
+                    <p className="sinhala-text text-lg font-bold text-white/70 mt-1 leading-snug">{p.date}</p>
+                    <div className="flex flex-wrap items-center gap-3 mt-3">
+                        <div className="time-badge text-white">
+                            <SandglassIcon/>
+                            <span className="sinhala-text text-base font-bold">{p.time}</span>
+                        </div>
+                        {p.description && (
+                            <button onClick={onDescClick}
+                                className="sinhala-text text-sm font-bold px-4 py-1.5 rounded-xl border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all">
+                                විස්තරය
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/* ══════════════════ APP ══════════════════ */
+function App() {
+    const [appState, setAppState]       = useState('intro');
+    const [viewMode, setViewMode]       = useState('month');
+    const [selectedMonth, setSelectedMonth] = useState(0);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [poyaModal, setPoyaModal]     = useState({ isOpen: false, data: null });
+    const [expandedPoyaType, setExpandedPoyaType] = useState(null);
+    const [monthKey, setMonthKey]       = useState(0);
+
+    useEffect(() => {
+        if (appState === 'main') {
+            document.body.classList.toggle('modal-open', isModalOpen || poyaModal.isOpen);
+        }
+    }, [isModalOpen, poyaModal.isOpen, appState]);
+
+    const cleanNikini = "නිකිණි";
+
+    const sinhalaMonths = [
+        { id:0,  name:"වෙසක්",  year:"2026", en:"MAY", desc:"ගෞතම බුදුරජුන්ගේ ලොව පහළවීම, සම්බුද්ධත්වයට පත්වීම හා පිරිනිවන්පෑම යන උතුම් තෙමඟුල සිදූවූයේ වෙසක් පුන් පොහෝ දිනයන්හිදී ය.\n\nසම්බුද්ධත්වයෙන් වසර අටක් ගත වූ තැන බුදුරජාණන් වහන්සේ තුන්වන වරට ලංකාද්වීපයේ කැළණියට වැඩම කොට වදාළේ වෙසක් පුන් පොහෝ දිනක ය.\n\nබුදුරජාණන් වහන්සේ සම්බුද්ධත්වයට පත්ව ප‍්‍රථම වරට කිඹුල්වත්පුරයට වැඩම කොට යමා මහ පෙළහර පා වදාළේ වෙසක් පුන් පොහෝ දිනක ය.\n\nආනන්ද මහරහතන් වහන්සේගේ පිරිනිවන්පෑම සිදූවූයේ ද වෙසක් පුන් පොහෝ දිනක ය." },
+        { id:1,  name:"පොසොන්", year:"2026", en:"JUN", desc:"අනුබුදු මිහිඳු මහරහතන් වහන්සේ ගෞතම බුදුරජුන්ගේ ධර්ම දායාදය රැගෙන ලක්දිවට වැඩම කොට වදාළේ පොසොන් පුන් පොහෝ දිනක ය." },
+        { id:2,  name:"ඇසළ",   year:"2026", en:"JUL", desc:"වහන්සේ මහාමායා බිසවුන් කුස පිළිසිඳ ගත්තේ ඇසළ පුන් පොහෝ දිනක ය.\n\nගිහිගෙය පිළිබඳව කළකිරුන සිද්ධාර්ථ කුමරුන් විමුක්තිය පතා මහාභිනික්මන් කළේ ඇසළ පුන් පොහෝ දිනකය.\n\nරාහුල කුමරුන්ගේ උපත ද ඇසළ පුන් පොහෝ දිනක සිදුවිය.\n\nසම්මා සම්බුද්ධත්වයට පත් වී වදාළ බුදුරජාණන් වහන්සේ බරණැස ඉසිපතන මිගදායේ දී දස දහසක් ලෝකධාතූන් කම්පා කරවමින් ප‍්‍රථම දම් දෙසුම පවත්වා වදාළේ ඇසළ පුන් පොහෝ දිනක ය." },
+        { id:3,  name:cleanNikini, year:"2026", en:"AUG", desc:"ප්‍රථම ධර්ම සංගායනාව පැවැත්වීම ආරම්භ කරන ලද්දේ නිකිණි පුන් පොහෝ දිනක ය.\n\nආනන්ද ස්වාමීන් වහන්සේ උතුම් අරහත්වයට පත්වී වදාළේ නිකිණි පුන් පොහෝ දිනක ය." },
+        { id:4,  name:"බිනර",  year:"2026", en:"SEP", desc:"ගෞතම බුදුරජුන්ගේ ශ්‍රාවක වූ භික්‍ෂූනී සංඝයාගේ ආරම්භය සිදූවූයේ බිනර පුන්පොහෝ දිනක ය." },
+        { id:5,  name:"වප්",   year:"2026", en:"OCT", desc:"බුදුරජාණන් වහන්සේ තවුතිසා දෙව්ලොවින් දඹදිව සංකස්ස පුරයට වැඩමකොට මහා පෙලහර පෑවේ වප් පුන් පොහෝ දිනක ය.\n\nසාරිපුත්ත මහ රහතන් වහන්සේ මහා ප්‍රඥාවන්ත භික්‍ෂූන් අතර අගතනතුර ලැබුවේ වප් පුන් පොහෝ දිනක ය.\n\nස්වාමීන් වහන්සේලාගේ පෙරවස් පවාරන දිනය වන්නේ වප් පුන් පොහෝ දිනය යි." },
+        { id:6,  name:"ඉල්",   year:"2026", en:"NOV", desc:"ප්‍රථම ධර්ම දූත පිරිස වන රහතන් වහන්සේලා සැටනම ධර්ම ප්‍රචාරය සඳහා වැඩම කොට වදාළේ ඉල් පුන් පොහෝ දිනක ය.\n\nසාරිපුත්ත මහරහතන් වහන්සේගේ පිරිනිවන් පෑමසිදූවූයේ ඉල් පුන් පොහෝ දිනක ය.\n\nස්වාමීන් වහන්සේලාගේ පසුවස් පවාරණ දිනය වන්නේ ඉල් පුන් පොහෝ දිනය යි." },
+        { id:7,  name:"උඳුවප්",year:"2026", en:"DEC", desc:"සංඝමිත්තා මහරහත් තෙරණිය විසින් ජය ශ‍්‍රී මහා බෝධීන් වහන්සේගේ දක්‍ෂිණ ශාඛාව ලක්දිවට වැඩමවන ලද්දේ උඳුවප් පුන් පොහෝ දිනක ය." },
+        { id:8,  name:"දුරුතු",year:"2027", en:"JAN", desc:"ගෞතම බුදුරජුන්ගේ ප්‍රථම ලංකාගමනය සිදූවූයේ ශ්‍රී සම්බුද්ධත්වයෙන් මාස නවයක් ගතවූ තැන එළැඹි දුරුතු පුන්පොහෝ දින ය.\n\nසුමන සමන් දෙව් රජුන්ගේ ඉල්ලීමකට අනුව බුදුරජාණන් වහන්සේ විසින් ලබාදුන් කේශ ධාතු තැන්පත් කරවමින් මහියංගණ චෛත්‍ය රාජයාණන් වහන්සේ ඉදිකරණු ලැබුවේ ද එම දුරුතු පුන් පොහෝ දා ය." },
+        { id:9,  name:"නවම්", year:"2027", en:"FEB", desc:"සාරිපුත්ත මොග්ගල්ලාන මහරහතන් වහන්සේලා ගෞතම සසුනෙහි අග්‍රශ්‍රාවක තනතුරු ලැබුවේ නවම් පුන් පොහෝ දිනක ය.\n\nප්‍රථම ශ්‍රාවක සන්නිපාතය වූ 1250 ක් භික්ෂූන් වහන්සේලාගේ රැස් වීම සිදූවූයේ ද නවම් පුන් පොහෝ දිනක ය.\n\nබුදුරජාණන් වහන්සේ විසින් මහා සංඝරත්නයට ඕවාද ප්‍රාතිමෝක්ෂය ප්‍රථම වරට දේශනා කොට වදාළේ ද නවම් පුන් පොහෝ දිනක ය.\n\nබුදුජාණන් වහන්සේ පිරිනිවන් පෑමට තුන්මසකට පෙරාතුව ආයු සංස්කාර අත්හළේ ද නවම් පුන් පොහෝ දිනකදී ය." },
+        { id:10, name:"මැදින්",year:"2027", en:"MAR", desc:"බුදුරජාණන් වහන්සේ විසි දහසක් මහරහතන් වහන්සේලා සමඟින් රජගහ නුවරින් නික්ම කිඹුල්වත් නුවරට වැඩම කිරීම ආරම්භ කරන ලද්දේ මැදින් පුන් පොහෝ දිනක දී ය." },
+        { id:11, name:"බක්",   year:"2027", en:"APR", desc:"දෙවන වරට ලක්දිවට වැඩම කරන ලද්දේ සම්බුද්ධත්වයෙන් පස් වෙනි වර්ෂයෙහිදී බක් පුන් පොහෝ දින ය. චූලෝදර මහෝදර නා රජුන් දෙදෙනා අතර මිණි පළඟක් අරභයා ඇති වූ ගැටුම සංසිඳවීම පිණිස බුදුරජාණන් වහන්සේගේ වැඩමවීම සිදුවිය." },
+    ];
+
+    const poyaCategories = [
+        { id:'amavaka',       title:"අමාවක පෝය",          moonPhase:'new'      },
+        { id:'pura_atavaka',  title:"පුර අටවක පෝය",       moonPhase:'waxing_q' },
+        { id:'pasalosvaka',   title:"පුර පසළොස්වක පෝය",   moonPhase:'full'     },
+        { id:'ava_atavaka',   title:"අව අටවක පෝය",        moonPhase:'waning_q' },
+    ];
+
+    const getPoyaData = (type) => {
+        const rows = [
+            // id, amavaka, pura_atavaka, pasalosvaka, ava_atavaka
+            // Vesak (0) - two pasalosvaka
+            [0, {y:"2026",m:"වෙසක්",d:"17 වන ඉරිදා දින",   t:"පූර්ව භාග 1:31"},
+                {y:"2026",m:"වෙසක්",d:"23 වන සෙනසුරාදා දින",t:"අපර භාග 4:40"},
+                [{y:"2026",m:"වෙසක්",d:"01 වන සිකුරාදා දින (අධි)",t:"අපර භාග 10:53"},{y:"2026",m:"වෙසක්",d:"30 වන සෙනසුරාදා දින",t:"පූර්ව භාග 5:53"}],
+                {y:"2026",m:"වෙසක්",d:"10 වන ඉරිදා දින",   t:"පූර්ව භාග 2:40"}],
+            // Poson (1)
+            [1, {y:"2026",m:"පොසොන්",d:"15 වන සඳුදා දින",  t:"පූර්ව භාග 8:24"},
+                {y:"2026",m:"පොසොන්",d:"22 වන සඳුදා දින",  t:"පූර්ව භාග 3:25"},
+                {y:"2026",m:"පොසොන්",d:"29 වන සඳුදා දින",  t:"පූර්ව භාග 5:26"},
+                {y:"2026",m:"පොසොන්",d:"08 වන සඳුදා දින",  t:"අපර භාග 3:30"}],
+            // Asela (2)
+            [2, {y:"2026",m:"ඇසළ",d:"14 වන අඟහරුවාදා දින", t:"අපර භාග 3:13"},
+                {y:"2026",m:"ඇසළ",d:"21 වන අඟහරුවාදා දින", t:"අපර භාග 4:35"},
+                {y:"2026",m:"ඇසළ",d:"29 වන බදාදා දින",      t:"අපර භාග 8:05"},
+                {y:"2026",m:"ඇසළ",d:"08 වන බදාදා දින",      t:"පූර්ව භාග 0:59"}],
+            // Nikini (3)
+            [3, {y:"2026",m:cleanNikini,d:"13 වන බ්‍රහස්පතින්දා දින",t:"පූර්ව භාග 0:01"},
+                {y:"2026",m:cleanNikini,d:"20 වන බ්‍රහස්පතින්දා දින",t:"පූර්ව භාග 8:16"},
+                {y:"2026",m:cleanNikini,d:"27 වන බ්‍රහස්පතින්දා දින",t:"පූර්ව භාග 9:48"},
+                {y:"2026",m:cleanNikini,d:"06 වන බ්‍රහස්පතින්දා දින",t:"පූර්ව භාග 7:51"}],
+            // Binara (4)
+            [4, {y:"2026",m:"බිනර",d:"11 වන සිකුරාදා දින",  t:"පූර්ව භාග 8:56"},
+                {y:"2026",m:"බිනර",d:"19 වන සෙනසුරාදා දින", t:"පූර්ව භාග 2:13"},
+                {y:"2026",m:"බිනර",d:"27 වන ඉරිදා දින",      t:"පූර්ව භාග 0:01"},
+                {y:"2026",m:"බිනර",d:"04 වන සිකුරාදා දින",   t:"අපර භාග 1:21"}],
+            // Vap (5)
+            [5, {y:"2026",m:"වප්",d:"10 වන සෙනසුරාදා දින", t:"අපර භාග 9:20"},
+                {y:"2026",m:"වප්",d:"19 වන සඳුදා දින",       t:"පූර්ව භාග 0:01"},
+                {y:"2026",m:"වප්",d:"25 වන ඉරිදා දින",       t:"පූර්ව භාග 6:00"},
+                {y:"2026",m:"වප්",d:"03 වන සෙනසුරාදා දින",  t:"අපර භාග 6:55"}],
+            // Il (6)
+            [6, {y:"2026",m:"ඉල්",d:"09 වන සඳුදා දින",  t:"අපර භාග 12:32"},
+                {y:"2026",m:"ඉල්",d:"17 වන අඟහරුවාදා දින",t:"අපර භාග 5:17"},
+                {y:"2026",m:"ඉල්",d:"24 වන අඟහරුවාදා දින",t:"අපර භාග 8:23"},
+                {y:"2026",m:"ඉල්",d:"02 වන සඳුදා දින",   t:"පූර්ව භාග 0:58"}],
+            // Unduvap (7) - two ava_atavaka
+            [7, {y:"2026",m:"උඳුවප්",d:"09 වන බදාදා දින",        t:"පූර්ව භාග 6:21"},
+                {y:"2026",m:"උඳුවප්",d:"17 වන බ්‍රහස්පතින්දා දින",t:"පූර්ව භාග 11:12"},
+                {y:"2026",m:"උඳුවප්",d:"25 වන සිකුරාදා දින",     t:"පූර්ව භාග 6:58"},
+                [{y:"2026",m:"උඳුවප්",d:"01 වන බදාදා දින",       t:"පූර්ව භාග 11:38"},{y:"2026",m:"උඳුවප්",d:"31 වන බ්‍රහස්පතින්දා දින",t:"පූර්ව භාග 0:29"}]],
+            // Duruthu (8)
+            [8, {y:"2027",m:"දුරුතු",d:"08 වන සිකුරාදා දින",t:"පූර්ව භාග 1:54"},
+                {y:"2027",m:"දුරුතු",d:"16 වන ඉරිදා දින",   t:"පූර්ව භාග 2:04"},
+                {y:"2027",m:"දුරුතු",d:"22 වන සිකුරාදා දින",t:"අපර භාග 5:47"},
+                {y:"2027",m:"දුරුතු",d:"29 වන සිකුරාදා දින",t:"අපර භාග 4:25"}],
+            // Navam (9)
+            [9, {y:"2027",m:"නවම්",d:"06 වන සෙනසුරාදා දින",t:"අපර භාග 9:26"},
+                {y:"2027",m:"නවම්",d:"14 වන ඉරිදා දින",      t:"අපර භාග 1:28"},
+                {y:"2027",m:"නවම්",d:"21 වන ඉරිදා දින",      t:"පූර්ව භාග 4:53"},
+                {y:"2027",m:"නවම්",d:"28 වන ඉරිදා දින",      t:"පූර්ව භාග 10:46"}],
+            // Madin (10)
+            [10,{y:"2027",m:"මැදින්",d:"08 වන සඳුදා දින",  t:"අපර භාග 2:59"},
+                {y:"2027",m:"මැදින්",d:"15 වන සඳුදා දින",  t:"අපර භාග 9:55"},
+                {y:"2027",m:"මැදින්",d:"22 වන සඳුදා දින",  t:"අපර භාග 4:13"},
+                {y:"2027",m:"මැදින්",d:"30 වන අඟහරුවාදා දින",t:"පූර්ව භාග 6:23"}],
+            // Bak (11)
+            [11,{y:"2027",m:"බක්",d:"07 වන බදාදා දින",      t:"පූර්ව භාග 5:21"},
+                {y:"2027",m:"බක්",d:"14 වන බදාදා දින",      t:"පූර්ව භාග 4:26"},
+                {y:"2027",m:"බක්",d:"21 වන බදාදා දින",      t:"පූර්ව භාග 3:57"},
+                {y:"2027",m:"බක්",d:"29 වන බ්‍රහස්පතින්දා දින",t:"පූර්ව භාග 1:47"}],
+        ];
+        const typeIdx = {amavaka:1, pura_atavaka:2, pasalosvaka:3, ava_atavaka:4};
+        const col = typeIdx[type];
+        const data = [];
+        rows.forEach(row => {
+            const entry = row[col];
+            if (Array.isArray(entry)) {
+                entry.forEach(e => data.push({ year:e.y, monthName:e.m, sinhalaDate:e.d, time:e.t }));
+            } else {
+                data.push({ year:entry.y, monthName:entry.m, sinhalaDate:entry.d, time:entry.t });
+            }
+        });
+        return data;
+    };
+
+    const getMoonPhasesForMonth = (id) => {
+        const phases = {
+            0: [
+                { title:"අධි පුර පසළොස්වක පෝය", date:"වෙසක් මස 01 වන සිකුරාදා දින",       time:"අපර භාග 10:53", moonPhase:'full'     },
+                { title:"අව අටවක පෝය",            date:"වෙසක් මස 10 වන ඉරිදා දින",          time:"පූර්ව භාග 2:40",  moonPhase:'waning_q' },
+                { title:"අමාවක පෝය",               date:"වෙසක් මස 17 වන ඉරිදා දින",          time:"පූර්ව භාග 1:31",  moonPhase:'new'      },
+                { title:"පුර අටවක පෝය",            date:"වෙසක් මස 23 වන සෙනසුරාදා දින",     time:"අපර භාග 4:40",   moonPhase:'waxing_q' },
+                { title:"පුර පසළොස්වක පෝය",        date:"වෙසක් මස 30 වන සෙනසුරාදා දින",     time:"පූර්ව භාග 5:53",  moonPhase:'full',    description: sinhalaMonths[0].desc },
+            ],
+            1: [
+                { title:"අව අටවක පෝය",      date:"පොසොන් මස 08 වන සඳුදා දින",   time:"අපර භාග 3:30",  moonPhase:'waning_q' },
+                { title:"අමාවක පෝය",         date:"පොසොන් මස 15 වන සඳුදා දින",   time:"පූර්ව භාග 8:24", moonPhase:'new'      },
+                { title:"පුර අටවක පෝය",      date:"පොසොන් මස 22 වන සඳුදා දින",   time:"පූර්ව භාග 3:25", moonPhase:'waxing_q' },
+                { title:"පුර පසළොස්වක පෝය",  date:"පොසොන් මස 29 වන සඳුදා දින",   time:"පූර්ව භාග 5:26", moonPhase:'full',    description: sinhalaMonths[1].desc },
+            ],
+            2: [
+                { title:"අව අටවක පෝය",      date:"ඇසළ මස 08 වන බදාදා දින",           time:"පූර්ව භාග 0:59", moonPhase:'waning_q' },
+                { title:"අමාවක පෝය",         date:"ඇසළ මස 14 වන අඟහරුවාදා දින",      time:"අපර භාග 3:13",  moonPhase:'new'      },
+                { title:"පුර අටවක පෝය",      date:"ඇසළ මස 21 වන අඟහරුවාදා දින",      time:"අපර භාග 4:35",  moonPhase:'waxing_q' },
+                { title:"පුර පසළොස්වක පෝය",  date:"ඇසළ මස 29 වන බදාදා දින",           time:"අපර භාග 8:05",  moonPhase:'full',    description: sinhalaMonths[2].desc },
+            ],
+            3: [
+                { title:"අව අටවක පෝය",      date:`${cleanNikini} මස 06 වන බ්‍රහස්පතින්දා දින`, time:"පූර්ව භාග 7:51", moonPhase:'waning_q' },
+                { title:"අමාවක පෝය",         date:`${cleanNikini} මස 13 වන බ්‍රහස්පතින්දා දින`, time:"පූර්ව භාග 0:01", moonPhase:'new'      },
+                { title:"පුර අටවක පෝය",      date:`${cleanNikini} මස 20 වන බ්‍රහස්පතින්දා දින`, time:"පූර්ව භාග 8:16", moonPhase:'waxing_q' },
+                { title:"පුර පසළොස්වක පෝය",  date:`${cleanNikini} මස 27 වන බ්‍රහස්පතින්දා දින`, time:"පූර්ව භාග 9:48", moonPhase:'full',    description: sinhalaMonths[3].desc },
+            ],
+            4: [
+                { title:"අව අටවක පෝය",      date:"බිනර මස 04 වන සිකුරාදා දින",   time:"අපර භාග 1:21",  moonPhase:'waning_q' },
+                { title:"අමාවක පෝය",         date:"බිනර මස 11 වන සිකුරාදා දින",   time:"පූර්ව භාග 8:56", moonPhase:'new'      },
+                { title:"පුර අටවක පෝය",      date:"බිනර මස 19 වන සෙනසුරාදා දින",  time:"පූර්ව භාග 2:13", moonPhase:'waxing_q' },
+                { title:"පුර පසළොස්වක පෝය",  date:"බිනර මස 27 වන ඉරිදා දින",      time:"පූර්ව භාග 0:01", moonPhase:'full',    description: sinhalaMonths[4].desc },
+            ],
+            5: [
+                { title:"අව අටවක පෝය",      date:"වප් මස 03 වන සෙනසුරාදා දින",  time:"අපර භාග 6:55",  moonPhase:'waning_q' },
+                { title:"අමාවක පෝය",         date:"වප් මස 10 වන සෙනසුරාදා දින",  time:"අපර භාග 9:20",  moonPhase:'new'      },
+                { title:"පුර අටවක පෝය",      date:"වප් මස 19 වන සඳුදා දින",       time:"පූර්ව භාග 0:01", moonPhase:'waxing_q' },
+                { title:"පුර පසළොස්වක පෝය",  date:"වප් මස 25 වන ඉරිදා දින",       time:"පූර්ව භාග 6:00", moonPhase:'full',    description: sinhalaMonths[5].desc },
+            ],
+            6: [
+                { title:"අව අටවක පෝය",      date:"ඉල් මස 02 වන සඳුදා දින",        time:"පූර්ව භාග 0:58",  moonPhase:'waning_q' },
+                { title:"අමාවක පෝය",         date:"ඉල් මස 09 වන සඳුදා දින",        time:"අපර භාග 12:32",  moonPhase:'new'      },
+                { title:"පුර අටවක පෝය",      date:"ඉල් මස 17 වන අඟහරුවාදා දින",   time:"අපර භාග 5:17",   moonPhase:'waxing_q' },
+                { title:"පුර පසළොස්වක පෝය",  date:"ඉල් මස 24 වන අඟහරුවාදා දින",   time:"අපර භාග 8:23",   moonPhase:'full',    description: sinhalaMonths[6].desc },
+            ],
+            7: [
+                { title:"අව අටවක පෝය",      date:"උඳුවප් මස 01 වන බදාදා දින",          time:"පූර්ව භාග 11:38", moonPhase:'waning_q' },
+                { title:"අමාවක පෝය",         date:"උඳුවප් මස 09 වන බදාදා දින",          time:"පූර්ව භාග 6:21",  moonPhase:'new'      },
+                { title:"පුර අටවක පෝය",      date:"උඳුවප් මස 17 වන බ්‍රහස්පතින්දා දින",  time:"පූර්ව භාග 11:12", moonPhase:'waxing_q' },
+                { title:"පුර පසළොස්වක පෝය",  date:"උඳුවප් මස 25 වන සිකුරාදා දින",       time:"පූර්ව භාග 6:58",  moonPhase:'full',    description: sinhalaMonths[7].desc },
+                { title:"අව අටවක පෝය",      date:"උඳුවප් මස 31 වන බ්‍රහස්පතින්දා දින",  time:"පූර්ව භාග 0:29",  moonPhase:'waning_q' },
+            ],
+            8: [
+                { title:"අමාවක පෝය",        date:"දුරුතු මස 08 වන සිකුරාදා දින", time:"පූර්ව භාග 1:54", moonPhase:'new'      },
+                { title:"පුර අටවක පෝය",     date:"දුරුතු මස 16 වන ඉරිදා දින",   time:"පූර්ව භාග 2:04", moonPhase:'waxing_q' },
+                { title:"පුර පසළොස්වක පෝය", date:"දුරුතු මස 22 වන සිකුරාදා දින", time:"අපර භාග 5:47",  moonPhase:'full',    description: sinhalaMonths[8].desc },
+                { title:"අව අටවක පෝය",      date:"දුරුතු මස 29 වන සිකුරාදා දින", time:"අපර භාග 4:25",  moonPhase:'waning_q' },
+            ],
+            9: [
+                { title:"අමාවක පෝය",        date:"නවම් මස 06 වන සෙනසුරාදා දින", time:"අපර භාග 9:26",  moonPhase:'new'      },
+                { title:"පුර අටවක පෝය",     date:"නවම් මස 14 වන ඉරිදා දින",      time:"අපර භාග 1:28",  moonPhase:'waxing_q' },
+                { title:"පුර පසළොස්වක පෝය", date:"නවම් මස 21 වන ඉරිදා දින",      time:"පූර්ව භාග 4:53", moonPhase:'full',    description: sinhalaMonths[9].desc },
+                { title:"අව අටවක පෝය",      date:"නවම් මස 28 වන ඉරිදා දින",      time:"පූර්ව භාග 10:46",moonPhase:'waning_q' },
+            ],
+            10: [
+                { title:"අමාවක පෝය",        date:"මැදින් මස 08 වන සඳුදා දින",   time:"අපර භාග 2:59",  moonPhase:'new'      },
+                { title:"පුර අටවක පෝය",     date:"මැදින් මස 15 වන සඳුදා දින",   time:"අපර භාග 9:55",  moonPhase:'waxing_q' },
+                { title:"පුර පසළොස්වක පෝය", date:"මැදින් මස 22 වන සඳුදා දින",   time:"අපර භාග 4:13",  moonPhase:'full',    description: sinhalaMonths[10].desc },
+                { title:"අව අටවක පෝය",      date:"මැදින් මස 30 වන අඟහරුවාදා දින",time:"පූර්ව භාග 6:23", moonPhase:'waning_q' },
+            ],
+            11: [
+                { title:"අමාවක පෝය",        date:"බක් මස 07 වන බදාදා දින",      time:"පූර්ව භාග 5:21", moonPhase:'new'      },
+                { title:"පුර අටවක පෝය",     date:"බක් මස 14 වන බදාදා දින",      time:"පූර්ව භාග 4:26", moonPhase:'waxing_q' },
+                { title:"පුර පසළොස්වක පෝය", date:"බක් මස 21 වන බදාදා දින",      time:"පූර්ව භාග 3:57", moonPhase:'full',    description: sinhalaMonths[11].desc },
+                { title:"අව අටවක පෝය",      date:"බක් මස 29 වන බ්‍රහස්පතින්දා දින",time:"පූර්ව භාග 1:47",moonPhase:'waning_q' },
+            ],
+        };
+        return phases[id] || [];
+    };
+
+    const changeMonth = (dir) => {
+        setSelectedMonth(m => {
+            const next = Math.max(0, Math.min(11, m + dir));
+            if (next !== m) setMonthKey(k => k+1);
+            return next;
+        });
+    };
+
+    /* ── INTRO ── */
+    if (appState === 'intro') {
+        return (
+            <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 text-center relative z-10">
+                <div className="flex flex-col items-center justify-center space-y-8 my-auto max-w-lg w-full">
+
+                    <div style={{transform:'scale(1.1)'}}>
+                        <RealisticMoon phase="full" size={120} glow={true}/>
+                    </div>
+
+                    <div>
+                        <h1 className="text-5xl md:text-7xl font-semibold tracking-[0.15em] serif title-gold uppercase leading-none">
+                            MOON<br/>RITUALS
+                        </h1>
+                    </div>
+
+                    <div className="sinhala-text text-[17px] md:text-[20px] text-white/80 leading-relaxed whitespace-pre-line text-center px-4" style={{lineHeight:1.9}}>
+                        {[
+                            "සිත් සනහන සඳ මඬල,",
+                            "පිවිතුරුවූත්, බලවත්වූත් ශක්තියක්",
+                            "අපගේ ජීවිතයන්ට ලබා දෙයි.",
+                            "",
+                            "සඳ මඬලේ, සඳ රැස් ශක්තිය සමග,",
+                            "ඔබගේ ජීවිතය නන් අයුරින් සශ්‍රීක කරවන",
+                            "ලෞකික හා ලෝකෝත්තර",
+                            "පූජනීය චාරිත්‍ර වාරිත්‍ර",
+                            "සිදු කළ හැකි වේ.",
+                            "",
+                            "",
+                            "ඔබ සැමට",
+                            "තෙරැවන් සරණයි",
+                        ].map((line, i) => (
+                            <span key={i} className="devot-line block" style={{animationDelay:`${0.5 + i*0.08}s`}}>
+                                {line || ' '}
+                            </span>
+                        ))}
+                    </div>
+
+                    <button
+                        onClick={(e) => { addRipple(e); setTimeout(() => setAppState('main'), 200); }}
+                        className="ripple-btn mt-4 px-14 py-4 rounded-full sinhala-text text-2xl font-bold transition-all active:scale-95"
+                        style={{
+                            background: 'linear-gradient(135deg, #083A4F 0%, #0d4f6e 100%)',
+                            border: '1px solid rgba(212,175,55,0.4)',
+                            color: T.gold,
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(212,175,55,0.1)',
+                        }}
+                    >
+                        පිවිසෙන්න
+                    </button>
+
+                    <footer className="opacity-25 text-[10px] tracking-widest uppercase text-white serif pt-2">
+                        © Aloko Udapadi
+                    </footer>
+                </div>
+            </div>
         );
+    }
 
-        function App() {
-            const [appState, setAppState] = useState('intro'); 
-            const [viewMode, setViewMode] = useState('month');
-            const [selectedMonth, setSelectedMonth] = useState(0);
-            const [isModalOpen, setIsModalOpen] = useState(false);
-            const [poyaModal, setPoyaModal] = useState({ isOpen: false, data: null });
-            const [expandedPoyaType, setExpandedPoyaType] = useState(null);
+    /* ── MAIN ── */
+    const m = sinhalaMonths[selectedMonth];
+    const phases = getMoonPhasesForMonth(selectedMonth);
 
-            const sinhalaMonths = [
-                { id: 0, name: "වෙසක්", year: "2026", en: "MAY", desc: "ගෞතම බුදුරජුන්ගේ ලොව පහළවීම, සම්බුද්ධත්වයට පත්වීම හා පිරිනිවන්පෑම යන උතුම් තෙමඟුල සිදූවූයේ වෙසක් පුන් පොහෝ දිනයන්හිදී ය.\n\nසම්බුද්ධත්වයෙන් වසර අටක් ගත වූ තැන බුදුරජාණන් වහන්සේ තුන්වන වරට ලංකාද්වීපයේ කැළණියට වැඩම කොට වදාළේ වෙසක් පුන් පොහෝ දිනක ය.\n\nබුදුරජාණන් වහන්සේ සම්බුද්ධත්වයට පත්ව ප‍්‍රථම වරට කිඹුල්වත්පුරයට වැඩම කොට යමා මහ පෙළහර පා වදාළේ වෙසක් පුන් පොහෝ දිනක ය.\n\nආනන්ද මහරහතන් වහන්සේගේ පිරිනිවන්පෑම සිදූවූයේ ද වෙසක් පුන් පොහෝ දිනක ය." },
-                { id: 1, name: "පොසොන්", year: "2026", en: "JUN", desc: "අනුබුදු මිහිඳු මහරහතන් වහන්සේ ගෞතම බුදුරජුන්ගේ ධර්ම දායාදය රැගෙන ලක්දිවට වැඩම කොට වදාළේ පොසොන් පුන් පොහෝ දිනක ය." },
-                { id: 2, name: "ඇසළ", year: "2026", en: "JUL", desc: "වහන්සේ මහාමායා බිසවුන් කුස පිළිසිඳ ගත්තේ ඇසළ පුන් පොහෝ දිනක ය.\n\nගිහිගෙය පිළිබඳව කළකිරුන සිද්ධාර්ථ කුමරුන් විමුක්තිය පතා මහාභිනික්මන් කළේ ඇසළ පුන් පොහෝ දිනකය.\n\nරාහුල කුමරුන්ගේ උපත ද ඇසළ පුන් පොහෝ දිනක සිදුවිය.\n\nසම්මා සම්බුද්ධත්වයට පත් වී වදාළ බුදුරජාණන් වහන්සේ බරණැස ඉසිපතන මිගදායේ දී දස දහසක් ලෝකධාතූන් කම්පා කරවමින් ප‍්‍රථම දම් දෙසුම පවත්වා වදාළේ ඇසළ පුන් පොහෝ දිනක ය." },
-                { id: 3, name: "නිකිණි", year: "2026", en: "AUG", desc: "ප්‍රථම ධර්ම සංගායනාව පැවැත්වීම ආරම්භ කරන ලද්දේ නිකිණි පුන් පොහෝ දිනක ය.\n\nආනන්ද ස්වාමීන් වහන්සේ උතුම් අරහත්වයට පත්වී වදාළේ นිකිණි පුන් පොහෝ දිනක ය." },
-                { id: 4, name: "බිනර", year: "2026", en: "SEP", desc: "ගෞතම බුදුරජුන්ගේ ශ්‍රාවක වූ භික්‍ෂූනී සංඝයාගේ ආරම්භය සිදූවූයේ බිනර පුන්පොහෝ දිනක ය." },
-                { id: 5, name: "වප්", year: "2026", en: "OCT", desc: "බුදුරජාණන් වහන්සේ තවුතිසා දෙව්ලොවින් දඹදිව සංකස්ස පුරයට වැඩමකොට මහා පෙලහර පෑවේ වප් පුන් පොහෝ දිනක ය.\n\nසාරිපුත්ත මහ රහතන් වහන්සේ මහා ප්‍රඥාවන්ත භික්‍ෂූන් අතර අගතනතුර ලැබුවේ වප් පුන් පොහෝ දිනක ය.\n\nස්වාමීන් වහන්සේලාගේ පෙරවස් පවාරන දිනය වන්නේ වප් පුන් පොහෝ දිනය යි." },
-                { id: 6, name: "ඉල්", year: "2026", en: "NOV", desc: "ප්‍රථම ධර්ම දූත පිරිස වන රහතන් වහන්සේලා සැටනම ධර්ම ප්‍රචාරය සඳහා වැඩම කොට වදාළේ ඉල් පුන් පොහෝ දිනක ය.\n\nසාරිපුත්ත මහරහතන් වහන්සේගේ පිරිනිවන් පෑමසිදූවූයේ ඉල් පුන් පොහෝ දිනක ය.\n\nස්වාමීන් වහන්සේලාගේ පසුවස් පවාරණ දිනය වන්නේ ඉල් පුන් පොහෝ දිනය යි." },
-                { id: 7, name: "උඳුවප්", year: "2026", en: "DEC", desc: "සංඝමිත්තා මහරහත් තෙරණිය විසින් ජය ශ‍්‍රී මහා බෝධීන් වහන්සේගේ දක්‍ෂිණ ශාඛාව ලක්දිවට වැඩමවන ලද්දේ උඳුවප් පුන් පොහෝ දිනක ය." },
-                { id: 8, name: "දුරුතු", year: "2027", en: "JAN", desc: "ගෞතම බුදුරජුන්ගේ ප්‍රථම ලංකාගමනය සිදූවූයේ ශ්‍රී සම්බුද්ධත්වයෙන් මාස නවයක් ගතවූ තැන එළැඹි දුරුතු පුන්පොහෝ දින ය.\n\nසුමන සමන් දෙව් රජුන්ගේ ඉල්ලීමකට අනුව බුදුරජාණන් වහන්සේ විසින් ලබාදුන් කේශ ධාතු තැන්පත් කරවමින් මහියංගණ චෛත්‍ය රාජයාණන් වහන්සේ ඉදිකරණු ලැබුවේ ද එම දුරුතු පුන් පොහෝ දා ය. මහියංගණ චෛත්‍ය රාජයාණන් වහන්සේ තුළ පසු කලෙක සර්වඥ ග්‍රීවා ධාතූන් වහන්සේ ද තැන්පත් කරනු ලැබීය." },
-                { id: 9, name: "නවම්", year: "2027", en: "FEB", desc: "සාරිපුත්ත මොග්ගල්ලාන මහරහතන් වහන්සේලා ගෞතම සසුනෙහි අග්‍රශ්‍රාවක තනතුරු ලැබුවේ නවම් පුන් පොහෝ දිනක ය.\n\nප්‍රථම ශ්‍රාවක සන්නිපාතය වූ 1250 ක් භික්ෂූන් වහන්සේලාගේ රැස් වීම සිදූවූයේ ද නවම් පුන් පොහෝ දිනක ය.\n\nබුදුරජාණන් වහන්සේ විසින් මහා සංඝරත්නයට ඕවාද ප්‍රාතිමෝක්ෂය ප්‍රථම වරට දේශනා කොට වදාළේ ද නවම් පුන් පොහෝ දිනක ය.\n\nබුදුජාණන් වහන්සේ පිරිනිවන් පෑමට තුන්මසකට පෙරාතුව ආයු සංස්කාර අත්හළේ ද නවම් පුන් පොහෝ දිනකදී ය." },
-                { id: 10, name: "මැදින්", year: "2027", en: "MAR", desc: "බුදුරජාණන් වහන්සේ විසි දහසක් මහරහතන් වහන්සේලා සමඟින් රජගහ นුවරින් නික්ම කිඹුල්වත් නුවරට වැඩම කිරීම ආරම්භ කරන ලද්දේ මැදින් පුන් පොහෝ දිනක දී ය." },
-                { id: 11, name: "බක්", year: "2027", en: "APR", desc: "දෙවන වරට ලක්දිවට වැඩම කරන ලද්දේ සම්බුද්ධත්වයෙන් පස් වෙනි වර්ෂයෙහිදී බක් පුන් පොහෝ දින ය. චූලෝදර මහෝදර නා රජුන් දෙදෙනා අතර මිණි පළඟක් අරභයා ඇති වූ ගැටුම සංසිඳවීම පිණිස බුදුරජාණන් වහන්සේගේ වැඩමවීම සිදුවිය." },
-            ];
+    return (
+        <main className="flex-1 relative w-full flex flex-col items-center py-10 md:py-16 fade-up min-h-screen" style={{zIndex:1}}>
 
-            const poyaCategories = [
-                { id: 'amavaka', title: "අමාවක පෝය", icon: () => <MoonBase hasLitSide={false} isSmall={true} /> },
-                { id: 'pura_atavaka', title: "පුර අටවක පෝය", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 0 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                { id: 'pasalosvaka', title: "පුර පසළොස්වක පෝය", icon: () => <MoonBase hasLitSide={true} isSmall={true}><circle cx="50" cy="50" r="48" fill={theme.moonYellow} /></MoonBase> },
-                { id: 'ava_atavaka', title: "අව අටවක පෝය", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 1 50 98 Z" fill={theme.moonYellow} /></MoonBase> }
-            ];
-
-            const cleanNikini = "නිකිණි";
-
-            const getPoyaData = (type) => {
-                const data = [];
-                sinhalaMonths.forEach((m, id) => {
-                    if (id === 0) { // Vesak
-                        if (type === 'pasalosvaka') {
-                            data.push({ year: "2026", monthName: "වෙසක්", sinhalaDate: "01 වන සිකුරාදා දින (අධි)", time: "අපර භාග 10:53" });
-                            data.push({ year: "2026", monthName: "වෙසක්", sinhalaDate: "30 වන සෙනසුරාදා දින", time: "පූර්ව භාග 5:53" });
-                        } else if (type === 'ava_atavaka') {
-                            data.push({ year: "2026", monthName: "වෙසක්", sinhalaDate: "10 වන ඉරිදා දින", time: "පූර්ව භාග 2:40" });
-                        } else if (type === 'amavaka') {
-                            data.push({ year: "2026", monthName: "වෙසක්", sinhalaDate: "17 වන ඉරිදා දින", time: "පූර්ව භාග 1:31" });
-                        } else if (type === 'pura_atavaka') {
-                            data.push({ year: "2026", monthName: "වෙසක්", sinhalaDate: "23 වන සෙනසුරාදා දින", time: "අපර භාග 4:40" });
-                        }
-                    } else if (id === 1) { // Poson
-                        if (type === 'ava_atavaka') {
-                            data.push({ year: "2026", monthName: "පොසොන්", sinhalaDate: "08 වන සඳුදා දින", time: "අපර භාග 3:30" });
-                        } else if (type === 'amavaka') {
-                            data.push({ year: "2026", monthName: "පොසොන්", sinhalaDate: "15 වන සඳුදා දින", time: "පූර්ව භාග 8:24" });
-                        } else if (type === 'pura_atavaka') {
-                            data.push({ year: "2026", monthName: "පොසොන්", sinhalaDate: "22 වන සඳුදා දින", time: "පූර්ව භාග 3:25" });
-                        } else if (type === 'pasalosvaka') {
-                            data.push({ year: "2026", monthName: "පොසොන්", sinhalaDate: "29 වන සඳුදා දින", time: "පූර්ව භාග 5:26" });
-                        }
-                    } else if (id === 2) { // Asela
-                        if (type === 'ava_atavaka') {
-                            data.push({ year: "2026", monthName: "ඇසළ", sinhalaDate: "08 වන බදාදා දින", time: "පූර්ව භාග 0:59" });
-                        } else if (type === 'amavaka') {
-                            data.push({ year: "2026", monthName: "ඇසළ", sinhalaDate: "14 වන අඟහරුවාදා දින", time: "අපර භාග 3:13" });
-                        } else if (type === 'pura_atavaka') {
-                            data.push({ year: "2026", monthName: "ඇසළ", sinhalaDate: "21 වන අඟහරුවාදා දින", time: "අපර භාග 4:35" });
-                        } else if (type === 'pasalosvaka') {
-                            data.push({ year: "2026", monthName: "ඇසළ", sinhalaDate: "29 වන බදාදා දින", time: "අපර භාග 8:05" });
-                        }
-                    } else if (id === 3) { // Nikini
-                        if (type === 'ava_atavaka') {
-                            data.push({ year: "2026", monthName: cleanNikini, sinhalaDate: "06 වන බ්‍රහස්පතින්දා දින", time: "පූර්ව භාග 7:51" });
-                        } else if (type === 'amavaka') {
-                            data.push({ year: "2026", monthName: cleanNikini, sinhalaDate: "13 වන බ්‍රහස්පතින්දා දින", time: "පූර්ව භාග 0:01" });
-                        } else if (type === 'pura_atavaka') {
-                            data.push({ year: "2026", monthName: cleanNikini, sinhalaDate: "20 වන බ්‍රහස්පතින්දා දින", time: "පූර්ව භාග 8:16" });
-                        } else if (type === 'pasalosvaka') {
-                            data.push({ year: "2026", monthName: cleanNikini, sinhalaDate: "27 වන බ්‍රහස්පතින්දා දින", time: "පූර්ව භාග 9:48" });
-                        }
-                    } else if (id === 4) { // Binara
-                        if (type === 'ava_atavaka') {
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "04 වන සිකුරාදා දින", time: "අපර භාග 1:21" });
-                        } else if (type === 'amavaka') {
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "11 වන සිකුරාදා දින", time: "පූර්ව භාග 8:56" });
-                        } else if (type === 'pura_atavaka') {
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "19 වන සෙනසුරාදා දින", time: "පූර්ව භාග 2:13" });
-                        } else if (type === 'pasalosvaka') {
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "27 වන ඉරිදා දින", time: "පූර්ව භාග 0:01" });
-                        }
-                    } else if (id === 5) { // Vap
-                        if (type === 'ava_atavaka') {
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "03 වන සෙනසුරාදා දින", time: "අපර භාග 6:55" });
-                        } else if (type === 'amavaka') {
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "10 වන සෙනසුරාදා දින", time: "අපර භාග 9:20" });
-                        } else if (type === 'pura_atavaka') {
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "19 වන සඳුදා දින", time: "පූර්ව භාග 0:01" });
-                        } else if (type === 'pasalosvaka') {
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "25 වන ඉරිදා දින", time: "පූර්ව භාග 6:00" });
-                        }
-                    } else if (id === 6) { // Il
-                        if (type === 'ava_atavaka') {
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "02 වන සඳුදා දින", time: "පූර්ව භාග 0:58" });
-                        } else if (type === 'amavaka') {
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "09 වන සඳුදා දින", time: "අපර භාග 12:32" });
-                        } else if (type === 'pura_atavaka') {
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "17 වන අඟහරුවාදා දින", time: "අපර භාග 5:17" });
-                        } else if (type === 'pasalosvaka') {
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "24 වන අඟහරුවාදා දින", time: "අපර භාග 8:23" });
-                        }
-                    } else if (id === 7) { // Unduvap
-                        if (type === 'ava_atavaka') {
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "01 වන බදාදා දින", time: "පූර්ව භාග 11:38" });
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "31 වන බ්‍රහස්පතින්දා දින", time: "පූර්ව භාග 0:29" });
-                        } else if (type === 'amavaka') {
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "09 වන බදාදා දින", time: "පූර්ව භාග 6:21" });
-                        } else if (type === 'pura_atavaka') {
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "17 වන බ්‍රහස්පතින්දා දින", time: "පූර්ව භාග 11:12" });
-                        } else if (type === 'pasalosvaka') {
-                            data.push({ year: "2026", monthName: m.name, sinhalaDate: "25 වන සිකුරාදා දින", time: "පූර්ව භාග 6:58" });
-                        }
-                    } else if (id === 8) { // Duruthu
-                        if (type === 'amavaka') {
-                            data.push({ year: "2027", monthName: m.name, sinhalaDate: "08 වන සිකුරාදා දින", time: "පූර්ව භාග 1:54" });
-                        } else if (type === 'pura_atavaka') {
-                            data.push({ year: "2027", monthName: m.name, sinhalaDate: "16 වන ඉරිදා දින", time: "පූර්ව භාග 2:04" });
-                        } else if (type === 'pasalosvaka') {
-                            data.push({ year: "2027", monthName: m.name, sinhalaDate: "22 වන සිකුරාදා දින", time: "අපර භාග 5:47" });
-                        } else if (type === 'ava_atavaka') {
-                            data.push({ year: "2027", monthName: m.name, sinhalaDate: "29 වන සිකුරාදා දින", time: "අපර භාග 4:25" });
-                        }
-                    } else if (id === 9) { // Navam
-                        if (type === 'amavaka') {
-                            data.push({ year: "2027", monthName: m.name, sinhalaDate: "06 වන සෙනසුරාදා දින", time: "අපර භාග 9:26" });
-                        } else if (type === 'pura_atavaka') {
-                            data.push({ year: "2027", monthName: m.name, sinhalaDate: "14 වන ඉරිදා දින", time: "අපර භාග 1:28" });
-                        } else if (type === 'pasalosvaka') {
-                            data.push({ year: "2027", monthName: m.name, sinhalaDate: "21 වන ඉරිදා දින", time: "පූර්ව භාග 4:53" });
-                        } else if (type === 'ava_atavaka') {
-                            data.push({ year: "2027", monthName: m.name, sinhalaDate: "28 වන ඉරිදා දින", time: "පූර්ව භාග 10:46" });
-                        }
-                    } else if (id === 10) { // Madin
-                        if (type === 'amavaka') {
-                            data.push({ year: "2027", monthName: m.name, sinhalaDate: "08 වන සඳුදා දින", time: "අපර භාග 2:59" });
-                        } else if (type === 'pura_atavaka') {
-                            data.push({ year: "2027", monthName: m.name, sinhalaDate: "15 වන සඳුදා දින", time: "අපර භාග 9:55" });
-                        } else if (type === 'pasalosvaka') {
-                            data.push({ year: "2027", monthName: m.name, sinhalaDate: "22 වන සඳුදා දින", time: "අපර භාග 4:13" });
-                        } else if (type === 'ava_atavaka') {
-                            data.push({ year: "2027", monthName: m.name, sinhalaDate: "30 වන අඟහරුවාදා දින", time: "පූර්ව භාග 6:23" });
-                        }
-                    } else if (id === 11) { // Bak
-                        if (type === 'amavaka') {
-                            data.push({ year: "2027", monthName: m.name, sinhalaDate: "07 වන බදාදා දින", time: "පූර්ව භාග 5:21" });
-                        } else if (type === 'pura_atavaka') {
-                            data.push({ year: "2027", monthName: m.name, sinhalaDate: "14 වන බදාදා දින", time: "පූර්ව භාග 4:26" });
-                        } else if (type === 'pasalosvaka') {
-                            data.push({ year: "2027", monthName: m.name, sinhalaDate: "21 වන බදාදා දින", time: "පූර්ව භාග 3:57" });
-                        } else if (type === 'ava_atavaka') {
-                            data.push({ year: "2027", monthName: m.name, sinhalaDate: "29 වන බ්‍රහස්පතින්දා දින", time: "පූර්ව භාග 1:47" });
-                        }
-                    } else { // Fallback generic data for other months
-                        let offset = (type === "pura_atavaka" ? 8 : type === "pasalosvaka" ? 15 : type === "ava_atavaka" ? 22 : 1);
-                        const d = offset + (id % 3);
-                        data.push({ year: m.year, monthName: m.name, sinhalaDate: `${String(d).padStart(2, '0')} වන දිනය`, time: "පූර්ව භාග 06:42" });
-                    }
-                });
-                return data;
-            };
-
-            const getMoonPhasesForMonth = (id) => {
-                if (id === 0) { // Vesak
-                    return [
-                        { title: "අධි පුර පසළොස්වක පෝය", date: "වෙසක් මස 01 වන සිකුරාදා දින", time: "අපර භාග 10:53", icon: () => <MoonBase hasLitSide={true} isSmall={true}><circle cx="50" cy="50" r="48" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "අව අටවක පෝය", date: "වෙසක් මස 10 වන ඉරිදා දින", time: "පූර්ව භාග 2:40", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 1 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "අමාවක පෝය", date: "වෙසක් මස 17 වන ඉරිදා දින", time: "පූර්ව භාග 1:31", icon: () => <MoonBase hasLitSide={false} isSmall={true} /> },
-                        { title: "පුර අටවක පෝය", date: "වෙසක් මස 23 වන සෙනසුරාදා දින", time: "අපර භාග 4:40", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 0 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "පුර පසළොස්වක පෝය", date: "වෙසක් මස 30 වන සෙනසුරාදා දින", time: "පූර්ව භාග 5:53", description: sinhalaMonths[0].desc, icon: () => <MoonBase hasLitSide={true} isSmall={true}><circle cx="50" cy="50" r="48" fill={theme.moonYellow} /></MoonBase> }
-                    ];
-                }
-                if (id === 1) { // Poson
-                    return [
-                        { title: "අව අටවක පෝය", date: "පොසොන් මස 08 වන සඳුදා දින", time: "අපර භාග 3:30", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 1 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "අමාවක පෝය", date: "පොසොන් මස 15 වන සඳුදා දින", time: "පූර්ව භාග 8:24", icon: () => <MoonBase hasLitSide={false} isSmall={true} /> },
-                        { title: "පුර අටවක පෝය", date: "පොසොන් මස 22 වන සඳුදා දින", time: "පූර්ව භාග 3:25", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 0 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "පුර පසළොස්වක පෝය", date: "පොසොන් මස 29 වන සඳුදා දින", time: "පූර්ව භාග 5:26", description: sinhalaMonths[1].desc, icon: () => <MoonBase hasLitSide={true} isSmall={true}><circle cx="50" cy="50" r="48" fill={theme.moonYellow} /></MoonBase> }
-                    ];
-                }
-                if (id === 2) { // Asela
-                    return [
-                        { title: "අව අටවක පෝය", date: "ඇසළ මස 08 වන බදාදා දින", time: "පූර්ව භාග 0:59", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 1 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "අමාවක පෝය", date: "ඇසළ මස 14 වන අඟහරුවාදා දින", time: "අපර භාග 3:13", icon: () => <MoonBase hasLitSide={false} isSmall={true} /> },
-                        { title: "පුර අටවක පෝය", date: "ඇසළ මස 21 වන අඟහරුවාදා දින", time: "අපර භාග 4:35", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 0 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "පුර පසළොස්වක පෝය", date: "ඇසළ මස 29 වන බදාදා දින", time: "අපර භාග 8:05", description: sinhalaMonths[2].desc, icon: () => <MoonBase hasLitSide={true} isSmall={true}><circle cx="50" cy="50" r="48" fill={theme.moonYellow} /></MoonBase> }
-                    ];
-                }
-                if (id === 3) { // Nikini
-                    return [
-                        { title: "අව අටවක පෝය", date: `${cleanNikini} මස 06 වන බ්‍රහස්පතින්දා දින`, time: "පූර්ව භාග 7:51", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 1 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "අමාවක පෝය", date: `${cleanNikini} මස 13 වන බ්‍රහස්පතින්දා දින`, time: "පූර්ව භාග 0:01", icon: () => <MoonBase hasLitSide={false} isSmall={true} /> },
-                        { title: "පුර අටවක පෝය", date: `${cleanNikini} මස 20 වන බ්‍රහස්පතින්දා දින`, time: "පූර්ව භාග 8:16", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 0 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "පුර පසළොස්වක පෝය", date: `${cleanNikini} මස 27 වන බ්‍රහස්පතින්දා දින`, time: "පූර්ව භාග 9:48", description: sinhalaMonths[3].desc, icon: () => <MoonBase hasLitSide={true} isSmall={true}><circle cx="50" cy="50" r="48" fill={theme.moonYellow} /></MoonBase> }
-                    ];
-                }
-                if (id === 4) { // Binara
-                    return [
-                        { title: "අව අටවක පෝය", date: "බිනර මස 04 වන සිකුරාදා දින", time: "අපර භාග 1:21", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 1 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "අමාවක පෝය", date: "බිනර මස 11 වන සිකුරාදා දින", time: "පූර්ව භාග 8:56", icon: () => <MoonBase hasLitSide={false} isSmall={true} /> },
-                        { title: "පුර අටවක පෝය", date: "බිනර මස 19 වන සෙනසුරාදා දින", time: "පූර්ව භාග 2:13", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 0 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "පුර පසළොස්වක පෝය", date: "බිනර මස 27 වන ඉරිදා දින", time: "පූර්ව භාග 0:01", description: sinhalaMonths[4].desc, icon: () => <MoonBase hasLitSide={true} isSmall={true}><circle cx="50" cy="50" r="48" fill={theme.moonYellow} /></MoonBase> }
-                    ];
-                }
-                if (id === 5) { // Vap
-                    return [
-                        { title: "අව අටවක පෝය", date: "වප් මස 03 වන සෙනසුරාදා දින", time: "අපර භාග 6:55", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 1 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "අමාවක පෝය", date: "වප් මස 10 වන සෙනසුරාදා දින", time: "අපර භාග 9:20", icon: () => <MoonBase hasLitSide={false} isSmall={true} /> },
-                        { title: "පුර අටවක පෝය", date: "වප් මස 19 වන සඳුදා දින", time: "පූර්ව භාග 0:01", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 0 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "පුර පසළොස්වක පෝය", date: "වප් මස 25 වන ඉරිදා දින", time: "පූර්ව භාග 6:00", description: sinhalaMonths[5].desc, icon: () => <MoonBase hasLitSide={true} isSmall={true}><circle cx="50" cy="50" r="48" fill={theme.moonYellow} /></MoonBase> }
-                    ];
-                }
-                if (id === 6) { // Il
-                    return [
-                        { title: "අව අටවක පෝය", date: "ඉල් මස 02 වන සඳුදා දින", time: "පූර්ව භාග 0:58", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 1 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "අමාවක පෝය", date: "ඉල් මස 09 වන සඳුදා දින", time: "අපර භාග 12:32", icon: () => <MoonBase hasLitSide={false} isSmall={true} /> },
-                        { title: "පුර අටවක පෝය", date: "ඉල් මස 17 වන අඟහරුවාදා දින", time: "අපර භාග 5:17", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 0 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "පුර පසළොස්වක පෝය", date: "ඉල් මස 24 වන අඟහරුවාදා දින", time: "අපර භාග 8:23", description: sinhalaMonths[6].desc, icon: () => <MoonBase hasLitSide={true} isSmall={true}><circle cx="50" cy="50" r="48" fill={theme.moonYellow} /></MoonBase> }
-                    ];
-                }
-                if (id === 7) { // Unduvap
-                    return [
-                        { title: "අව අටවක පෝය", date: "උඳුවප් මස 01 වන බදාදා දින", time: "පූර්ව භාග 11:38", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 1 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "අමාවක පෝය", date: "උඳුවප් මස 09 වන බදාදා දින", time: "පූර්ව භාග 6:21", icon: () => <MoonBase hasLitSide={false} isSmall={true} /> },
-                        { title: "පුර අටවක පෝය", date: "උඳුවප් මස 17 වන බ්‍රහස්පතින්දා දින", time: "පූර්ව භාග 11:12", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 0 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "පුර පසළොස්වක පෝය", date: "උඳුවප් මස 25 වන සිකුරාදා දින", time: "පූර්ව භාග 6:58", description: sinhalaMonths[7].desc, icon: () => <MoonBase hasLitSide={true} isSmall={true}><circle cx="50" cy="50" r="48" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "අව අටවක පෝය", date: "උඳුවප් මස 31 වන බ්‍රහස්පතින්දා දින", time: "පූර්ව භාග 0:29", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 1 50 98 Z" fill={theme.moonYellow} /></MoonBase> }
-                    ];
-                }
-                if (id === 8) { // Duruthu
-                    return [
-                        { title: "අමාවක පෝය", date: "දුරුතු මස 08 වන සිකුරාදා දින", time: "පූර්ව භාග 1:54", icon: () => <MoonBase hasLitSide={false} isSmall={true} /> },
-                        { title: "පුර අටවක පෝය", date: "දුරුතු මස 16 වන ඉරිදා දින", time: "පූර්ව භාග 2:04", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 0 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "පුර පසළොස්වක පෝය", date: "දුරුතු මස 22 වන සිකුරාදා දින", time: "අපර භාග 5:47", description: sinhalaMonths[8].desc, icon: () => <MoonBase hasLitSide={true} isSmall={true}><circle cx="50" cy="50" r="48" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "අව අටවක පෝය", date: "දුරුතු මස 29 වන සිකුරාදා දින", time: "අපර භාග 4:25", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 1 50 98 Z" fill={theme.moonYellow} /></MoonBase> }
-                    ];
-                }
-                if (id === 9) { // Navam
-                    return [
-                        { title: "අමාවක පෝය", date: "නවම් මස 06 වන සෙනසුරාදා දින", time: "අපර භාග 9:26", icon: () => <MoonBase hasLitSide={false} isSmall={true} /> },
-                        { title: "පුර අටවක පෝය", date: "නවම් මස 14 වන ඉරිදා දින", time: "අපර භාග 1:28", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 0 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "පුර පසළොස්වක පෝය", date: "නවම් මස 21 වන ඉරිදා දින", time: "පූර්ව භාග 4:53", description: sinhalaMonths[9].desc, icon: () => <MoonBase hasLitSide={true} isSmall={true}><circle cx="50" cy="50" r="48" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "අව අටවක පෝය", date: "නවම් මස 28 වන ඉරිදා දින", time: "පූර්ව භාග 10:46", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 1 50 98 Z" fill={theme.moonYellow} /></MoonBase> }
-                    ];
-                }
-                if (id === 10) { // Madin
-                    return [
-                        { title: "අමාවක පෝය", date: "මැදින් මස 08 වන සඳුදා දින", time: "අපර භාග 2:59", icon: () => <MoonBase hasLitSide={false} isSmall={true} /> },
-                        { title: "පුර අටවක පෝය", date: "මැදින් මස 15 වන සඳුදා දින", time: "අපර භාග 9:55", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 0 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "පුර පසළොස්වක පෝය", date: "මැදින් මස 22 වන සඳුදා දින", time: "අපර භාග 4:13", description: sinhalaMonths[10].desc, icon: () => <MoonBase hasLitSide={true} isSmall={true}><circle cx="50" cy="50" r="48" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "අව අටවක පෝය", date: "මැදින් මස 30 වන අඟහරුවාදා දින", time: "පූර්ව භාග 6:23", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 1 50 98 Z" fill={theme.moonYellow} /></MoonBase> }
-                    ];
-                }
-                if (id === 11) { // Bak
-                    return [
-                        { title: "අමාවක පෝය", date: "බක් මස 07 වන බදාදා දින", time: "පූර්ව භාග 5:21", icon: () => <MoonBase hasLitSide={false} isSmall={true} /> },
-                        { title: "පුර අටවක පෝය", date: "බක් මස 14 වන බදාදා දින", time: "පූර්ව භාග 4:26", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 0 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "පුර පසළොස්වක පෝය", date: "බක් මස 21 වන බදාදා දින", time: "පූර්ව භාග 3:57", description: sinhalaMonths[11].desc, icon: () => <MoonBase hasLitSide={true} isSmall={true}><circle cx="50" cy="50" r="48" fill={theme.moonYellow} /></MoonBase> },
-                        { title: "අව අටවක පෝය", date: "බක් මස 29 වන බ්‍රහස්පතින්දා දින", time: "පූර්ව භාග 1:47", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 1 50 98 Z" fill={theme.moonYellow} /></MoonBase> }
-                    ];
-                }
-                const m = sinhalaMonths[id];
-                const off = id % 3;
-                return [
-                    { title: "අමාවක පෝය", date: `${m.name} මස ${String(1+off).padStart(2,'0')} වන දිනය`, time: "පූර්ව භාග 06:42", icon: () => <MoonBase hasLitSide={false} isSmall={true} /> },
-                    { title: "පුර අටවක පෝය", date: `${m.name} මස ${String(8+off).padStart(2,'0')} වන දිනය`, time: "අපර භාග 11:24", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 0 50 98 Z" fill={theme.moonYellow} /></MoonBase> },
-                    { title: "පුර පසළොස්වක පෝය", date: `${m.name} මස ${String(15+off).padStart(2,'0')} වන දිනය`, time: "අපර භාග 08:15", description: m.desc, icon: () => <MoonBase hasLitSide={true} isSmall={true}><circle cx="50" cy="50" r="48" fill={theme.moonYellow} /></MoonBase> },
-                    { title: "අව අටවක පෝය", date: `${m.name} මස ${String(22+off).padStart(2,'0')} වන දිනය`, time: "පූර්ව භාග 03:56", icon: () => <MoonBase hasLitSide={true} isSmall={true}><path d="M 50 2 A 48 48 0 0 1 50 98 Z" fill={theme.moonYellow} /></MoonBase> }
-                ];
-            };
-
-            const MainHeading = () => (
-                <h1 className="text-5xl md:text-7xl font-semibold tracking-[0.15em] serif forced-two-lines mb-10 title-gold-gradient uppercase">
+            {/* Header */}
+            <header className="z-10 text-center mb-8 px-4">
+                <h1 className="text-4xl md:text-6xl font-semibold tracking-[0.15em] serif title-gold uppercase leading-none mb-8">
                     MOON<br/>RITUALS
                 </h1>
-            );
 
-            if (appState === 'intro') {
-                return (
-                    <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 text-center relative z-10 animate-fade-up">
-                        <MovingParticles />
-                        <div className="flex flex-col items-center justify-center space-y-10 my-auto">
-                            <div className="scale-125 pt-4">
-                                <MoonBase hasLitSide={true}><circle cx="50" cy="50" r="48" fill={theme.moonYellow} /></MoonBase>
+                {/* Tab switcher */}
+                <div className="tab-pill inline-flex mt-2">
+                    <div className="tab-indicator" style={{
+                        left: viewMode === 'month' ? '4px' : 'calc(50% + 0px)',
+                        width: 'calc(50% - 4px)',
+                    }}/>
+                    <button onClick={() => setViewMode('month')}
+                        className={`w-36 py-2.5 sinhala-text text-lg rounded-full transition-colors ${viewMode==='month' ? 'text-[#D4AF37] font-bold' : 'text-white/40'}`}>
+                        මාසය
+                    </button>
+                    <button onClick={() => setViewMode('poya')}
+                        className={`w-36 py-2.5 sinhala-text text-lg rounded-full transition-colors ${viewMode==='poya' ? 'text-[#D4AF37] font-bold' : 'text-white/40'}`}>
+                        පොහොය
+                    </button>
+                </div>
+            </header>
+
+            {/* Month view */}
+            {viewMode === 'month' ? (
+                <div className="w-full max-w-5xl px-4 flex flex-col items-center">
+                    {/* Month navigator */}
+                    <div className="flex items-center space-x-6 mb-8 w-full max-w-lg justify-center">
+                        <button onClick={() => changeMonth(-1)}
+                            disabled={selectedMonth === 0}
+                            className="w-12 h-12 rounded-full glass-card flex items-center justify-center text-white/50 hover:text-white disabled:opacity-20 transition-all active:scale-90 ripple-btn"
+                            onClick={(e) => { addRipple(e); changeMonth(-1); }}>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" strokeWidth={2.5} strokeLinecap="round"/></svg>
+                        </button>
+
+                        <div onClick={() => setIsModalOpen(true)} className="text-center cursor-pointer group flex-1">
+                            <div className="flex items-center justify-center space-x-2 mb-0.5">
+                                <h2 className="sinhala-text text-3xl md:text-4xl font-bold text-white group-hover:text-[#FFEE8C] transition-colors">
+                                    {m.id === 3 ? cleanNikini : m.name} මාසය
+                                </h2>
+                                <svg className="w-4 h-4 text-white/30 group-hover:text-[#FFEE8C] transition-colors mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" strokeWidth={2} strokeLinecap="round"/></svg>
                             </div>
-                            <MainHeading />
-                            
-                            {/* Updated with multi-line devotional Sinhala statement */}
-                            <div className="sinhala-text text-[18px] md:text-[21px] text-white/90 max-w-xl leading-relaxed whitespace-pre-line text-center space-y-4 px-4">
-                                {"සිත් සනහන සඳ මඬල,\nපිවිතුරුවූත්, බලවත්වූත් ශක්තියක්\nඅපගේ ජීවිතයන්ට ලබා දෙයි.\n\nසඳ මඬලේ, සඳ රැස් ශක්තිය සමග,\nඔබගේ ජීවිතය නන් අයුරින් සශ්‍රීක කරවන\nලෞකික හා ලෝකෝත්තර\nපූජනීය චාරිත්‍ර වාරිත්‍ර\nසිදු කළ හැකි වේ.\n\n\nඔබ සැමට\nතෙරුවන් සරණයි"}
+                            <p className="text-xs tracking-widest text-white/30 serif uppercase">{m.year} · {m.en}</p>
+                        </div>
+
+                        <button
+                            disabled={selectedMonth === 11}
+                            className="w-12 h-12 rounded-full glass-card flex items-center justify-center text-white/50 hover:text-white disabled:opacity-20 transition-all active:scale-90 ripple-btn"
+                            onClick={(e) => { addRipple(e); changeMonth(1); }}>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth={2.5} strokeLinecap="round"/></svg>
+                        </button>
+                    </div>
+
+                    {/* Phase progress strip */}
+                    <div className="flex items-center justify-center space-x-4 mb-8 opacity-60">
+                        {['new','waxing_q','full','waning_q'].map((ph, i) => (
+                            <React.Fragment key={ph}>
+                                <MoonIcon phase={ph} size={28}/>
+                                {i < 3 && <div className="w-6 h-px bg-white/20"/>}
+                            </React.Fragment>
+                        ))}
+                    </div>
+
+                    {/* Phase cards */}
+                    <div key={monthKey} className="w-full flex flex-col items-center">
+                        {phases.map((p, i) => (
+                            <PhaseCard key={i} p={p} idx={i}
+                                selectedMonth={selectedMonth}
+                                cleanNikini={cleanNikini}
+                                sinhalaMonths={sinhalaMonths}
+                                onDescClick={() => setPoyaModal({ isOpen: true, data: { monthName: m.id===3 ? cleanNikini : m.name, description: p.description } })}
+                            />
+                        ))}
+                    </div>
+                </div>
+            ) : (
+                <div className="w-full max-w-5xl px-4 flex flex-col items-center">
+                    {/* Phase guide */}
+                    <div className="flex items-center justify-center space-x-6 mb-6 glass-card px-8 py-4">
+                        {[['new','අමාවක'],['waxing_q','අටවක'],['full','පසළොස්වක'],['waning_q','අව අටවක']].map(([ph, lbl]) => (
+                            <div key={ph} className="flex flex-col items-center space-y-1">
+                                <MoonIcon phase={ph} size={32}/>
+                                <span className="sinhala-text text-[11px] text-white/40">{lbl}</span>
                             </div>
-                            
-                            <button onClick={() => setAppState('main')} className="px-12 py-4 rounded-full bg-[#083A4F] text-[#D4AF37] sinhala-text text-2xl font-bold border border-[#D4AF37]/30 shadow-lg active:scale-95 transition-transform mt-4">
-                                පිවිසෙන්න
+                        ))}
+                    </div>
+
+                    {poyaCategories.map(cat => (
+                        <PoyaCategoryCard key={cat.id}
+                            title={cat.title}
+                            moonPhase={cat.moonPhase}
+                            isExpanded={expandedPoyaType === cat.id}
+                            onToggle={() => setExpandedPoyaType(expandedPoyaType === cat.id ? null : cat.id)}
+                            occurrences={getPoyaData(cat.id)}
+                        />
+                    ))}
+                </div>
+            )}
+
+            {/* ── Poya description modal ── */}
+            {poyaModal.isOpen && (
+                <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-4 md:p-6"
+                     style={{background:'rgba(2,14,22,0.92)', backdropFilter:'blur(12px)'}}
+                     onClick={() => setPoyaModal({isOpen:false,data:null})}>
+                    <div className="modal-pop w-full max-w-md rounded-[2rem] overflow-hidden shadow-2xl"
+                         style={{border:'1px solid rgba(212,175,55,0.2)'}}
+                         onClick={e => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="p-6 pb-4" style={{background:'linear-gradient(135deg,#FFFFF0,#FFF8DC)'}}>
+                            <div className="flex items-center justify-between">
+                                <h3 className="sinhala-text text-2xl font-bold leading-tight">
+                                    <span className="poya-gold">{poyaModal.data?.monthName} මස</span>
+                                </h3>
+                                <button onClick={() => setPoyaModal({isOpen:false,data:null})}
+                                    className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center text-[#083A4F]/60 hover:bg-black/20 transition-all">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={2}/></svg>
+                                </button>
+                            </div>
+                            <p className="sinhala-text text-lg font-bold text-[#083A4F]/70">පොහොය විස්තරය</p>
+                        </div>
+                        {/* Body */}
+                        <div className="p-6 max-h-[55vh] overflow-y-auto modal-scroll"
+                             style={{background:'linear-gradient(to bottom,#FFFCF5,#FDFBF0)'}}>
+                            <p className="sinhala-text text-[18px] text-[#083A4F] leading-[1.7] text-justify whitespace-pre-line">
+                                {poyaModal.data?.description}
+                            </p>
+                        </div>
+                        {/* Footer */}
+                        <div className="p-4" style={{background:'#FDFBF0'}}>
+                            <button onClick={() => setPoyaModal({isOpen:false,data:null})}
+                                className="ripple-btn w-full py-3.5 rounded-2xl sinhala-text text-lg font-bold text-white transition-all active:scale-98"
+                                style={{background:'linear-gradient(135deg,#083A4F,#0d5570)',boxShadow:'0 4px 16px rgba(0,0,0,0.3)'}}
+                                onClick={(e) => { addRipple(e); setPoyaModal({isOpen:false,data:null}); }}>
+                                පෙර මෙනුවට
                             </button>
-                            
-                            <footer className="opacity-30 text-[10px] tracking-widest uppercase text-white serif pt-4">© Aloko Udapadi</footer>
                         </div>
                     </div>
-                );
-            }
+                </div>
+            )}
 
-            return (
-                <main className="flex-1 relative w-full flex flex-col items-center py-10 md:py-20 animate-fade-up">
-                    <MovingParticles />
-                    <header className="z-10 text-center mb-10">
-                        <MainHeading />
-                        <div className="flex justify-center p-1 border border-white/10 rounded-full backdrop-blur-md bg-white/5 shadow-xl mt-10">
-                            <button onClick={() => setViewMode('month')} className={`w-36 py-2 sinhala-text text-xl rounded-full transition-all ${viewMode === 'month' ? 'bg-[#083A4F] text-[#D4AF37] font-bold shadow-lg' : 'text-white/50'}`}>මාසය</button>
-                            <button onClick={() => setViewMode('poya')} className={`w-36 py-2 sinhala-text text-xl rounded-full transition-all ${viewMode === 'poya' ? 'bg-[#083A4F] text-[#D4AF37] font-bold shadow-lg' : 'text-white/50'}`}>පොහොය</button>
+            {/* ── Month picker modal ── */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6"
+                     style={{background:'rgba(2,14,22,0.92)', backdropFilter:'blur(12px)'}}
+                     onClick={() => setIsModalOpen(false)}>
+                    <div className="modal-pop w-full max-w-xs rounded-3xl overflow-hidden shadow-2xl"
+                         style={{background:'linear-gradient(135deg,#0A2330,#061820)',border:'1px solid rgba(255,255,255,0.08)'}}
+                         onClick={e => e.stopPropagation()}>
+                        <div className="p-5 border-b border-white/5">
+                            <h3 className="sinhala-text text-xl font-bold text-white/70 text-center">මාසය තෝරන්න</h3>
                         </div>
-                    </header>
-
-                    {viewMode === 'month' ? (
-                        <div className="w-full max-w-5xl px-4 flex flex-col items-center">
-                            <div className="flex items-center space-x-8 mb-8">
-                                <button onClick={() => setSelectedMonth(m => Math.max(0, m-1))} className="text-white/40 hover:text-white transition-colors"><svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" strokeWidth={2}/></svg></button>
-                                <div onClick={() => setIsModalOpen(true)} className="text-center cursor-pointer group">
-                                    <h2 className="sinhala-text text-3xl md:text-4xl font-bold text-white group-hover:text-[#FFEE8C] transition-colors">
-                                        {sinhalaMonths[selectedMonth].id === 3 ? cleanNikini : sinhalaMonths[selectedMonth].name} මාසය
-                                    </h2>
-                                    <p className="text-sm tracking-widest text-white/40 serif uppercase font-medium">{sinhalaMonths[selectedMonth].year}</p>
-                                </div>
-                                <button onClick={() => setSelectedMonth(m => Math.min(11, m+1))} className="text-white/40 hover:text-white transition-colors"><svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth={2}/></svg></button>
-                            </div>
-                            
-                            {getMoonPhasesForMonth(selectedMonth).map((p, i) => (
-                                <div key={i} className="w-full max-w-lg mb-6 rounded-[2.2rem] p-[2.5px] relative overflow-hidden shadow-2xl" style={{ animation: `cardFloat 6s ease-in-out infinite`, animationDelay: `${i*0.4}s` }}>
-                                    <div className="absolute inset-[-100%] z-0" style={{ background: `conic-gradient(from 0deg, transparent, ${theme.brightGold}, transparent)`, animation: 'rotateGlow 8s linear infinite' }} />
-                                    <div className="relative z-10 w-full rounded-[2.1rem] live-ivory-bg p-7 flex items-center space-x-6">
-                                        <div className="flex-shrink-0"><p.icon /></div>
-                                        <div className="flex-grow">
-                                            <h3 className="text-3xl md:text-4xl font-bold poya-gold-gradient sinhala-text leading-tight">{p.title}</h3>
-                                            <p className="sinhala-text text-xl font-bold text-[#083A4F]">{p.date}</p>
-                                            
-                                            <div className="flex flex-col items-start space-y-3 mt-2">
-                                                <div className="relative inline-block w-fit">
-                                                    <div className="flex items-center space-x-1.5 relative z-10 px-3 py-1.5 md:px-4 md:py-2 text-white font-bold">
-                                                        <SandglassIcon /><span className="sinhala-text text-lg">{p.time}</span>
-                                                    </div>
-                                                    <div style={{ backgroundColor: '#083A4F' }} className="absolute inset-0 rounded-xl z-0"></div>
-                                                </div>
-                                                
-                                                {p.description && (
-                                                    <button 
-                                                        onClick={() => setPoyaModal({ isOpen: true, data: { monthName: sinhalaMonths[selectedMonth].id === 3 ? cleanNikini : sinhalaMonths[selectedMonth].name, description: p.description } })} 
-                                                        className="sinhala-text text-base text-[#407E8C] underline font-bold hover:text-[#083A4F] transition-colors"
-                                                    >
-                                                        පොහොය විස්තරය
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div className="p-3 max-h-[65vh] overflow-y-auto no-scrollbar">
+                            {sinhalaMonths.map(mo => (
+                                <button key={mo.id}
+                                    onClick={() => { setSelectedMonth(mo.id); setMonthKey(k=>k+1); setIsModalOpen(false); }}
+                                    className={`ripple-btn w-full py-3.5 mb-1.5 rounded-xl sinhala-text text-lg transition-all ${selectedMonth===mo.id ? 'month-btn-active' : 'text-white/60 hover:bg-white/5'}`}
+                                    style={selectedMonth===mo.id ? {} : {background:'transparent'}}
+                                    onClick={(e) => { addRipple(e); setSelectedMonth(mo.id); setMonthKey(k=>k+1); setIsModalOpen(false); }}>
+                                    <span>{mo.id===3 ? cleanNikini : mo.name} මස</span>
+                                    <span className="ml-2 text-sm opacity-50 serif">{mo.year}</span>
+                                </button>
                             ))}
                         </div>
-                    ) : (
-                        <div className="w-full max-w-5xl px-4 flex flex-col items-center">
-                            {poyaCategories.map(cat => (
-                                <PoyaCategoryCard key={cat.id} title={cat.title} icon={cat.icon} isExpanded={expandedPoyaType === cat.id} onToggle={() => setExpandedPoyaType(expandedPoyaType === cat.id ? null : cat.id)} occurrences={getPoyaData(cat.id)} />
-                            ))}
-                        </div>
-                    )}
+                    </div>
+                </div>
+            )}
 
-                    {/* Modals */}
-                    {poyaModal.isOpen && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md" onClick={() => setPoyaModal({ isOpen: false, data: null })}>
-                            <div className="relative w-full max-w-md bg-[#FDFBF7] border border-white/10 rounded-[2.5rem] shadow-2xl p-8 max-h-[85vh] overflow-y-auto no-scrollbar animate-modal-pop" onClick={e => e.stopPropagation()}>
-                                <h3 className="sinhala-text text-3xl font-bold poya-gold-gradient mb-4 leading-tight">{poyaModal.data?.monthName} මස පොහොය විස්තරය</h3>
-                                <p className="sinhala-text text-xl text-[#083A4F] leading-[1.4] text-justify whitespace-pre-line mb-10 px-1">{poyaModal.data?.description}</p>
-                                <button onClick={() => setPoyaModal({ isOpen: false, data: null })} className="w-full py-4 bg-[#083A4F] text-white rounded-2xl sinhala-text text-xl font-bold shadow-lg active:scale-95 transition-transform">පෙර මෙනුවට</button>
-                            </div>
-                        </div>
-                    )}
+            <footer className="z-10 mt-12 mb-6 opacity-20 text-[10px] tracking-widest uppercase text-white serif">
+                © Aloko Udapadi
+            </footer>
+        </main>
+    );
+}
 
-                    {isModalOpen && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md" onClick={() => setIsModalOpen(false)}>
-                            <div className="w-full max-w-xs bg-[#0A2330] rounded-3xl p-6 border border-white/10 max-h-[75vh] overflow-y-auto no-scrollbar" onClick={e => e.stopPropagation()}>
-                                <h3 className="sinhala-text text-2xl font-bold text-white mb-6 text-center opacity-80">මාසය තෝරන්න</h3>
-                                {sinhalaMonths.map(m => (
-                                    <button key={m.id} onClick={() => { setSelectedMonth(m.id); setIsModalOpen(false); }} className={`w-full py-4 mb-2 rounded-2xl sinhala-text text-xl transition-all ${selectedMonth === m.id ? 'bg-[#FFEE8C] text-[#021017] font-bold' : 'bg-white/5 text-white/70 hover:bg-white/10'}`}>
-                                        {m.id === 3 ? cleanNikini : m.name} මස
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                    <footer className="z-10 mt-10 mb-6 opacity-30 text-[10px] tracking-widest uppercase text-white serif">© Aloko Udapadi</footer>
-                </main>
-            );
-        }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
 </body>
 </html>
