@@ -818,17 +818,14 @@ function App() {
     /* ── INTRO ── */
     if (appState === 'intro') {
         return (
-            <div style={{height:'100vh',width:'100%',display:'flex',flexDirection:'column',alignItems:'center',textAlign:'center',position:'relative',zIndex:10,overflow:'hidden',padding:'0 16px',boxSizing:'border-box'}}>
+            <div style={{height:'100vh',width:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',textAlign:'center',position:'relative',zIndex:10,overflow:'hidden',padding:'max(80px,12vh) 16px max(8px,1.5vh)',boxSizing:'border-box'}}>
+                <div style={{display:'flex',flexDirection:'column',alignItems:'center',width:'100%',maxWidth:'28rem'}}>
 
-                {/* Moon pinned near top */}
-                <div style={{paddingTop:'max(80px,12vh)', flexShrink:0}}>
-                    <RealisticMoon phase="full" size={96} glow={true}/>
-                </div>
+                    <div style={{marginBottom:'5px', flexShrink:0}}>
+                        <RealisticMoon phase="full" size={96} glow={true}/>
+                    </div>
 
-                {/* Title + text + button centered in remaining space */}
-                <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',width:'100%',maxWidth:'28rem',paddingBottom:'max(8px,1.5vh)'}}>
-
-                    <div style={{marginBottom:'5px'}}>
+                    <div style={{marginBottom:'5px', flexShrink:0}}>
                         <h1 className="text-4xl font-semibold tracking-[0.15em] serif title-gold uppercase leading-none">
                             MOON<br/>RITUALS
                         </h1>
@@ -871,7 +868,7 @@ function App() {
                             letterSpacing: '0.06em',
                         }}
                     >
-                        පිවිසෙන්න  
+                        පිවිසෙන්න
                     </button>
 
                     <footer className="opacity-25 text-[10px] tracking-widest uppercase text-white serif">
