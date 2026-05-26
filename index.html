@@ -624,8 +624,25 @@ function App() {
     const [poyaModal, setPoyaModal]         = useState({ isOpen: false, data: null });
     const [expandedPoyaType, setExpandedPoyaType] = useState(null);
     const [monthKey, setMonthKey]           = useState(0);
+    const [monthMode, setMonthMode]           = useState('sinhala');
 
     const cleanNikini = "නිකිණි";
+    const MODERN_MONTHS = {
+        'MAY':'මැයි','JUN':'ජුනි','JUL':'ජූලි','AUG':'අගෝස්තු',
+        'SEP':'සැත්තැම්බර්','OCT':'ඔක්තොම්බර්','NOV':'නොවැම්බර්','DEC':'දෙසැම්බර්',
+        'JAN':'ජනවාරි','FEB':'පෙබරවාරි','MAR':'මාර්තු','APR':'අප්‍රේල්',
+    };
+    const mMonth = (mo) => monthMode === 'modern' && MODERN_MONTHS[mo.en] ? MODERN_MONTHS[mo.en] : (mo.id === 3 ? cleanNikini : mo.name);
+    const mTime  = (t)  => monthMode !== 'modern' ? t : t.replace('පූර්ව භාග', 'පෙරවරු').replace('අපර භාග', 'පස්වරු');
+    const mDate  = (d)  => {
+        if (monthMode !== 'modern') return d;
+        let r = d;
+        [['දුරුතු','ජනවාරි'],['නවම්','පෙබරවාරි'],['මැදින්','මාර්තු'],['බක්','අප්‍රේල්'],
+         ['වෙසක්','මැයි'],['පොසොන්','ජුනි'],['ඇසළ','ජූලි'],['නිකිනි','අගෝස්තු'],
+         ['නිකිණි','අගෝස්තු'],['බිනර','සැත්තැම්බර්'],['වප්','ඔක්තොම්බර්'],
+         ['ඉල්','නොවැම්බර්'],['උදුවප්','දෙසැම්බර්']].forEach(([s,m]) => { r = r.split(s).join(m); });
+        return r;
+    };
 
     const sinhalaMonths = [
         { id:0,  name:"වෙසක්",  year:"2026", en:"MAY", desc:"ගෞතම බුදුරජුන්ගේ ලොව පහළවීම, සම්බුද්ධත්වයට පත්වීම හා පිරිනිවන්පෑම යන උතුම් තෙමඟුල සිදූවූයේ වෙසක් පුන් පොහෝ දිනයන්හිදී ය.\n\nසම්බුද්ධත්වයෙන් වසර අටක් ගත වූ තැන බුදුරජාණන් වහන්සේ තුන්වන වරට ලංකාද්වීපයේ කැළණියට වැඩම කොට වදාළේ වෙසක් පුන් පොහෝ දිනක ය.\n\nබුදුරජාණන් වහන්සේ සම්බුද්ධත්වයට පත්ව ප‍්‍රථම වරට කිඹුල්වත්පුරයට වැඩම කොට යමා මහ පෙළහර පා වදාළේ වෙසක් පුන් පොහෝ දිනක ය.\n\nආනන්ද මහරහතන් වහන්සේගේ පිරිනිවන්පෑම සිදූවූයේ ද වෙසක් පුන් පොහෝ දිනක ය." },
@@ -851,25 +868,20 @@ function App() {
                         ))}
                     </div>
 
-                    <button
-                        onClick={(e) => { addRipple(e); setTimeout(() => setAppState('main'), 200); }}
-                        className="ripple-btn sinhala-text font-bold transition-all active:scale-95"
-                        style={{
-                            flexShrink: 0,
-                            marginBottom: '8px',
-                            padding: '9px 36px',
-                            borderRadius: '999px',
-                            fontSize: '16px',
-                            background: 'rgba(8,50,70,0.7)',
-                            backdropFilter: 'blur(12px)',
-                            border: '1px solid rgba(212,175,55,0.55)',
-                            color: T.gold,
-                            boxShadow: '0 4px 18px rgba(0,0,0,0.45), 0 0 12px rgba(212,175,55,0.12)',
-                            letterSpacing: '0.06em',
-                        }}
-                    >
-                        පිවිසෙන්න
-                    </button>
+                    <div style={{display:'flex', gap:'12px', marginBottom:'8px'}}>
+                        <button
+                            onClick={(e) => { addRipple(e); setTimeout(() => { setMonthMode('sinhala'); setAppState('main'); }, 200); }}
+                            className="ripple-btn sinhala-text font-bold transition-all active:scale-95"
+                            style={{flexShrink:0, padding:'9px 28px', borderRadius:'999px', fontSize:'15px',background:'rgba(8,50,70,0.7)', backdropFilter:'blur(12px)',border:'1px solid rgba(212,175,55,0.55)', color:T.gold,boxShadow:'0 4px 18px rgba(0,0,0,0.45), 0 0 12px rgba(212,175,55,0.12)',letterSpacing:'0.06em',}}>
+                            සිංහල මාස අනුව
+                        </button>
+                        <button
+                            onClick={(e) => { addRipple(e); setTimeout(() => { setMonthMode('modern'); setAppState('main'); }, 200); }}
+                            className="ripple-btn sinhala-text font-bold transition-all active:scale-95"
+                            style={{flexShrink:0, padding:'9px 28px', borderRadius:'999px', fontSize:'15px',background:'rgba(8,50,70,0.7)', backdropFilter:'blur(12px)',border:'1px solid rgba(212,175,55,0.55)', color:T.gold,boxShadow:'0 4px 18px rgba(0,0,0,0.45), 0 0 12px rgba(212,175,55,0.12)',letterSpacing:'0.06em',}}>
+                            සාමාන්‍ය මාස අනුව
+                        </button>
+                    </div>
 
                     <footer className="opacity-25 text-[10px] tracking-widest uppercase text-white serif">
                         © Three Vidya Insight Center
@@ -924,11 +936,11 @@ function App() {
                         <div className="text-center flex-1 cursor-pointer group" onClick={() => setIsMonthOpen(true)}>
                             <div className="flex items-center justify-center space-x-1.5">
                                 <h2 className="sinhala-text text-3xl md:text-4xl font-bold text-white group-hover:text-[#FFEE8C] transition-colors">
-                                    {m.id === 3 ? cleanNikini : m.name} මාසය
+                                    {mMonth(m)} මාසය
                                 </h2>
                                 <svg className="w-4 h-4 text-white/30 group-hover:text-[#FFEE8C] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" strokeWidth={2} strokeLinecap="round"/></svg>
                             </div>
-                            <p className="text-xs tracking-widest text-white/60 serif uppercase mt-0.5">{m.year} · {m.en}</p>
+                            <p className="text-xs tracking-widest text-white/60 serif uppercase mt-0.5">{m.year} · {monthMode==='modern'?mMonth(m):m.en}</p>
                         </div>
 
                         <button disabled={selectedMonth === 11}
@@ -951,11 +963,11 @@ function App() {
                     {/* Phase cards */}
                     <div key={monthKey} className="w-full flex flex-col items-center">
                         {phases.map((p, i) => (
-                            <PhaseCard key={i} p={p} idx={i}
+                            <PhaseCard key={i} p={{...p, date:mDate(p.date), time:mTime(p.time)}} idx={i}
                                 selectedMonth={selectedMonth}
                                 cleanNikini={cleanNikini}
                                 sinhalaMonths={sinhalaMonths}
-                                onDescClick={() => setPoyaModal({ isOpen: true, data: { monthName: m.id===3 ? cleanNikini : m.name, description: p.description } })}
+                                onDescClick={() => setPoyaModal({ isOpen: true, data: { monthName: mMonth(m), description: p.description } })}
                             />
                         ))}
                     </div>
@@ -1040,7 +1052,7 @@ function App() {
                                     ? {background:'linear-gradient(135deg,#D4AF37,#FFEE8C)',color:'#021017',fontWeight:700,boxShadow:'0 4px 16px rgba(212,175,55,0.35)'}
                                     : {background:'transparent',color:'rgba(255,255,255,0.7)'}}
                                 onClick={(e)=>{ addRipple(e); setSelectedMonth(mo.id); setMonthKey(k=>k+1); setIsMonthOpen(false); }}>
-                                {mo.id===3 ? cleanNikini : mo.name} මස
+                                {mMonth(mo)} මස
                                 <span className="ml-2 text-sm opacity-40 serif">{mo.year}</span>
                             </button>
                         ))}
