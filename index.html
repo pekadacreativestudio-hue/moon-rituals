@@ -625,6 +625,7 @@ function App() {
     const [expandedPoyaType, setExpandedPoyaType] = useState(null);
     const [monthKey, setMonthKey]           = useState(0);
     const [monthMode, setMonthMode]           = useState('sinhala');
+    const monthSwipe = useRef({ x: 0, y: 0 });
 
     /* Edge-swipe back to intro */
     useEffect(() => {
@@ -952,7 +953,15 @@ function App() {
                             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/></svg>
                         </button>
 
-                        <div className="text-center flex-1 cursor-pointer group" onClick={() => setIsMonthOpen(true)}>
+                        <div className="text-center flex-1 cursor-pointer group" onClick={() => setIsMonthOpen(true)}
+                            onTouchStart={(e) => { monthSwipe.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }}
+                            onTouchEnd={(e) => {
+                                const dx = e.changedTouches[0].clientX - monthSwipe.current.x;
+                                const dy = e.changedTouches[0].clientY - monthSwipe.current.y;
+                                if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+                                    dx > 0 ? changeMonth(-1) : changeMonth(1);
+                                }
+                            }}>
                             <div className="flex items-center justify-center space-x-1.5">
                                 <h2 className="sinhala-text text-3xl md:text-4xl font-bold text-white group-hover:text-[#FFEE8C] transition-colors">
                                     {mMonth(m)} මාසය
