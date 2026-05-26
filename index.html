@@ -530,7 +530,7 @@ const SandglassIcon = () => (
 );
 
 /* ── Poya Category Card ── */
-function PoyaCategoryCard({ title, moonPhase, occurrences, isExpanded, onToggle }) {
+function PoyaCategoryCard({ title, moonPhase, occurrences, isExpanded, onToggle, mDate, mTime }) {
     return (
         <div className="w-full flex justify-center px-4 z-10 relative my-3">
             <div className="w-full max-w-lg glass-card overflow-hidden cursor-pointer ripple-btn"
@@ -560,11 +560,11 @@ function PoyaCategoryCard({ title, moonPhase, occurrences, isExpanded, onToggle 
                             <div key={idx} className="flex flex-col py-3 px-5 rounded-xl transition-all"
                                  style={{background:'rgba(255,255,255,0.04)', border:'1px solid rgba(212,175,55,0.08)'}}>
                                 <span className="sinhala-text text-[18px] md:text-[20px] font-bold leading-tight poya-gold">
-                                    {item.year} {item.monthName} මස
+                                    {item.year} {mDate ? mDate(item.monthName) : item.monthName} මස
                                 </span>
-                                <span className="sinhala-text text-base md:text-lg font-bold mt-0.5" style={{color:'rgba(229,225,221,0.85)'}}>{item.sinhalaDate}</span>
+                                <span className="sinhala-text text-base md:text-lg font-bold mt-0.5" style={{color:'rgba(229,225,221,0.85)'}}>{mDate ? mDate(item.sinhalaDate) : item.sinhalaDate}</span>
                                 <div className="flex items-center space-x-1.5 mt-1" style={{color:'rgba(255,238,140,0.7)'}}>
-                                    <SandglassIcon/><span className="sinhala-text text-base font-semibold">{item.time}</span>
+                                    <SandglassIcon/><span className="sinhala-text text-base font-semibold">{mTime ? mTime(item.time) : item.time}</span>
                                 </div>
                             </div>
                         ))}
@@ -1018,6 +1018,8 @@ function App() {
                             isExpanded={expandedPoyaType === cat.id}
                             onToggle={() => setExpandedPoyaType(expandedPoyaType === cat.id ? null : cat.id)}
                             occurrences={getPoyaData(cat.id)}
+                            mDate={mDate}
+                            mTime={mTime}
                         />
                     ))}
                 </div>
