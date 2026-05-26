@@ -646,25 +646,6 @@ function App() {
     }, [appState]);
 
 
-    /* Edge-swipe back to intro */
-    useEffect(() => {
-        if (appState !== 'main') return;
-        let sx = 0, sy = 0;
-        const onStart = (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; };
-        const onEnd   = (e) => {
-            const dx = e.changedTouches[0].clientX - sx;
-            const dy = e.changedTouches[0].clientY - sy;
-            if (sx < 32 && dx > 72 && Math.abs(dx) > Math.abs(dy) * 1.5) setAppState('intro');
-        };
-        document.addEventListener('touchstart', onStart, { passive: true });
-        document.addEventListener('touchend',   onEnd,   { passive: true });
-        return () => {
-            document.removeEventListener('touchstart', onStart);
-            document.removeEventListener('touchend',   onEnd);
-        };
-    }, [appState]);
-
-
     const cleanNikini = "නිකිණි";
     const MODERN_MONTHS = {
         'MAY':'මැයි','JUN':'ජුනි','JUL':'ජූලි','AUG':'අගෝස්තු',
@@ -987,7 +968,7 @@ function App() {
                                 </h2>
                                 <svg className="w-4 h-4 text-white/30 group-hover:text-[#FFEE8C] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" strokeWidth={2} strokeLinecap="round"/></svg>
                             </div>
-                            <p className="text-xs tracking-widest text-white/60 serif uppercase mt-0.5">{m.year} · {monthMode==='modern'?mMonth(m):m.en}</p>
+                            <p className="text-xs tracking-widest text-white/60 serif uppercase mt-0.5">{m.year} · {m.en}</p>
                         </div>
 
                         <button disabled={selectedMonth === 11}
