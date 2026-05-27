@@ -624,7 +624,7 @@ function App() {
     const [poyaModal, setPoyaModal]         = useState({ isOpen: false, data: null });
     const [expandedPoyaType, setExpandedPoyaType] = useState(null);
     const [monthKey, setMonthKey]           = useState(0);
-    const [monthMode, setMonthMode]           = useState('sinhala');
+    const [monthMode, setMonthMode]           = useState('modern');
     const monthSwipe = useRef({ x: 0, y: 0 });
 
     /* Edge-swipe back to intro */
@@ -888,20 +888,12 @@ function App() {
                         ))}
                     </div>
 
-                    <div style={{display:'flex', gap:'12px', marginBottom:'8px'}}>
-                        <button
-                            onClick={(e) => { addRipple(e); setTimeout(() => { setMonthMode('sinhala'); setAppState('main'); }, 200); }}
-                            className="ripple-btn sinhala-text font-bold transition-all active:scale-95"
-                            style={{flexShrink:0, padding:'9px 28px', borderRadius:'999px', fontSize:'15px',background:'rgba(8,50,70,0.7)', backdropFilter:'blur(12px)',border:'1px solid rgba(212,175,55,0.55)', color:T.gold,boxShadow:'0 4px 18px rgba(0,0,0,0.45), 0 0 12px rgba(212,175,55,0.12)',letterSpacing:'0.06em',}}>
-                            සිංහල මාස අනුව
-                        </button>
-                        <button
-                            onClick={(e) => { addRipple(e); setTimeout(() => { setMonthMode('modern'); setAppState('main'); }, 200); }}
-                            className="ripple-btn sinhala-text font-bold transition-all active:scale-95"
-                            style={{flexShrink:0, padding:'9px 28px', borderRadius:'999px', fontSize:'15px',background:'rgba(8,50,70,0.7)', backdropFilter:'blur(12px)',border:'1px solid rgba(212,175,55,0.55)', color:T.gold,boxShadow:'0 4px 18px rgba(0,0,0,0.45), 0 0 12px rgba(212,175,55,0.12)',letterSpacing:'0.06em',}}>
-                            සාමාන්‍ය මාස අනුව
-                        </button>
-                    </div>
+                    <button
+                        onClick={(e) => { addRipple(e); setTimeout(() => setAppState('main'), 200); }}
+                        className="ripple-btn sinhala-text font-bold transition-all active:scale-95"
+                        style={{flexShrink:0, marginBottom:'8px', padding:'9px 36px', borderRadius:'999px', fontSize:'16px', background:'rgba(8,50,70,0.7)', backdropFilter:'blur(12px)', border:'1px solid rgba(212,175,55,0.55)', color:T.gold, boxShadow:'0 4px 18px rgba(0,0,0,0.45), 0 0 12px rgba(212,175,55,0.12)', letterSpacing:'0.06em'}}>
+                        පිවිසෙන්න
+                    </button>
 
                     <footer className="opacity-25 text-[10px] tracking-widest uppercase text-white serif">
                         © Three Vidya Insight Center
